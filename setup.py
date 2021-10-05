@@ -12,7 +12,7 @@ with io.open(op.join(here, "requirements.txt"), encoding="utf-8") as f:
 
 install_requires = [x.strip() for x in all_reqs]
 
-setup(name='veritastool',version='0.8',description ='veritastool',author='MAS Veritas',
+setup(name='veritastool',version='0.9',description ='veritastool',author='MAS Veritas',
 install_requires=install_requires,
 packages=['veritastool','veritastool.fairness','veritastool.custom','veritastool.config'],
 include_package_data=True,
