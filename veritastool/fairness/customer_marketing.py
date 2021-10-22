@@ -1,11 +1,11 @@
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from .fairness import Fairness
-from ..utility import check_datatype, check_value
-from .performance_metrics import PerformanceMetrics
-from .fairness_metrics import FairnessMetrics
+from ..util.utility import check_datatype, check_value
+from ..metrics.performance_metrics import PerformanceMetrics
+from ..metrics.fairness_metrics import FairnessMetrics
 from ..config.constants import Constants
-from ..ErrorCatcher import VeritasError
+from ..util.errors import *
 
 class CustomerMarketing(Fairness):
     """
@@ -14,16 +14,15 @@ class CustomerMarketing(Fairness):
     Class Attributes
     ------------------
     _model_type_to_metric_lookup: dictionary
-                Used to associate the model type (key) with the metric type & expected size of positive and negative labels (value).
-                e.g. {“rejection”: (“classification”, 2), “uplift”: (“uplift”, 4), “a_new_type”: (“regression”, -1)}
+                Used to associate the model type (key) with the metric type, expected size of positive and negative labels (value) & length of model_params respectively.
+                e.g. {“rejection”: (“classification”, 2, 1), “uplift”: (“uplift”, 4, 2), “a_new_type”: (“regression”, -1, 1)}
 
     """
-
     _model_type_to_metric_lookup = {"uplift":("uplift", 4, 2),
                                    "rejection": ("classification", 2, 1),
                                    "propensity":("classification", 2, 1)}
 
-    def __init__(self, model_params, fair_threshold, perf_metric_name =  "balanced_acc", fair_metric_name = "auto",  fair_concern = "eligible", fair_priority = "benefit", fair_impact = "normal", fair_neutral_tolerance = 0.002, treatment_cost = None, revenue = None, fairness_metric_value_input = {}, proportion_of_interpolation_fitting = 1.0):
+    def __init__(self, model_params, fair_threshold, perf_metric_name =  "balanced_acc", fair_metric_name = "auto",  fair_concern = "eligible", fair_priority = "benefit", fair_impact = "normal", treatment_cost = None, revenue = None, fairness_metric_value_input = {}, proportion_of_interpolation_fitting = 1.0):
         """
         Parameters
         ----------
@@ -31,7 +30,7 @@ class CustomerMarketing(Fairness):
                 Data holder that contains all the attributes of the model to be assessed. Compulsory input for initialization.
                 If a single object is provided, it will be taken as either a "rejection" or "propensity" model according to the model_type flag.
                 If 2 objects are provided, while the model_type flag is "uplift", the first one corresponds to rejection model while the second one corresponds to propensity model.
-                **x_train[0] = x_test[1] and x_test[0]=x_test[1] must be the same when len(model_param) > 1
+                **x_train[0] = x_train[1] and x_test[0]=x_test[1] must be the same when len(model_param) > 1
 
         fair_threshold: int or float
                 Value between 0 and 100. If a float between 0 and 1 (not inclusive) is provided, it is used to benchmark against the primary fairness metric value to determine the fairness_conclusion.
@@ -39,7 +38,7 @@ class CustomerMarketing(Fairness):
 
         Instance Attributes
         ------------------
-        perf_metric_name: string, default = ‘balanced_acc’
+        perf_metric_name: string, default = "balanced_acc"
                 Name of the primary performance metric to be used for computations in the evaluate() and/or compile() functions.
 
         fair_metric_name : string, default = "auto"
@@ -54,22 +53,22 @@ class CustomerMarketing(Fairness):
         fair_impact: string, default = "normal"
                 Used to pick the fairness metric according to the Fairness Tree methodology. Could be "normal" or "significant" or "selective"
 
-        fair_neutral_tolerance: float, default = 0.002
-                Tolerance value between 0 and 0.1 (inclusive) used in the performance-fairness tradeoff analysis section to filter the primary fairness metric values.
-
-        treatment_cost: float, default=None
+        treatment_cost: int or float, default=None
                 Cost of the marketing treatment per customer
 
-        revenue: float, default=None
+        revenue: int or float, default=None
                 Revenue gained per customer
 
         fairness_metric_value_input : dictionary
+                Contains the p_var and respective fairness_metric and value 
+                e.g. {"gender": {"fnr_parity": 0.2}}
 
-        proportion_of_interpolation_fitting : float
+        proportion_of_interpolation_fitting : float, default=1.0
+                Proportion of interpolation fitting
 
-        _use_case_metrics: dictionary of lists, default="None"
-                Contains all the performance & fairness metrics for credit scoring.
-                e.g. {"fair ": ["fnr_parity", ...], "perf": ["balanced_accuracy, ..."]}
+        _use_case_metrics: dictionary of lists, default=None
+                Contains all the performance & fairness metrics for each use case.
+                e.g. {"fair ": ["fnr_parity", ...], "perf": ["balanced_acc, ..."]}
                 Dynamically assigned during initialisation by using the _metric_group_map in Fairness/Performance Metrics class and the _model_type_to_metric above.
 
         _input_validation_lookup: dictionary
@@ -95,13 +94,23 @@ class CustomerMarketing(Fairness):
         err : object
                 VeritasError object
 
+        selection_threshold : float
+                Selection threshold from Constants class
+
+        e_lift : float
+                Empirical lift
+
+        pred_outcome: dictionary
+                Contains the probabilities of the treatment and control groups for both rejection and acquiring
         """
         super().__init__(model_params)
 
         self.fair_metric_name = fair_metric_name
+        self.fair_metric_input = fair_metric_name
         self.perf_metric_name = perf_metric_name
         self.fair_threshold = fair_threshold
-        self.fair_neutral_tolerance = fair_neutral_tolerance
+        self.fair_threshold_input = fair_threshold
+        self.fair_neutral_tolerance = Constants().fair_neutral_tolerance 
         self.fair_concern = fair_concern
         self.fair_priority = fair_priority
         self.fair_impact = fair_impact
@@ -109,11 +118,10 @@ class CustomerMarketing(Fairness):
         self.proportion_of_interpolation_fitting = proportion_of_interpolation_fitting
 
         self._model_type_input()
-        # ch_model = self._model_type_input()
-        # if ch_model != []:
-        #     self.err.push(ch_model[0][0], var_name=ch_model[0][1], given=ch_model[0][2], expected=ch_model[0][3])
 
         self._select_fairness_metric_name()
+        self.check_perf_metric_name()
+        self.check_fair_metric_name()
 
         self._use_case_metrics = {}
 
@@ -134,19 +142,20 @@ class CustomerMarketing(Fairness):
             "fair_threshold": [(float, int), (Constants().fair_threshold_low), Constants().fair_threshold_high],
             "fair_neutral_tolerance": [(float,),(Constants().fair_neutral_threshold_low), Constants().fair_neutral_threshold_high],
             "proportion_of_interpolation_fitting": [(float,), (Constants().proportion_of_interpolation_fitting_low), Constants().proportion_of_interpolation_fitting_high],
-            "perf_metric_name": [(str,), self._use_case_metrics["perf"]],
-            "fair_metric_name": [(str,), self._use_case_metrics["fair"]],
             "fair_concern": [(str,), ["eligible", "inclusive", "both"]],
             "fair_priority": [(str,), ["benefit", "harm"]],
             "fair_impact": [(str,), ["normal", "significant", "selective"]],
+            "perf_metric_name": [(str,), self._use_case_metrics["perf"]],
+            "fair_metric_name": [(str,), self._use_case_metrics["fair"]],
             "model_params":[(list,), None],
             "fairness_metric_value_input":[(dict,), None]}
 
         self.k = Constants().k
-        self.array_size = Constants().array_size
+        self.array_size = Constants().perf_dynamics_array_size
         self.decimals = Constants().decimals
 
-        self.spl_params = {'revenue': revenue, 'treatment_cost': treatment_cost}
+        if self.model_params[0].model_type == "uplift":
+            self.spl_params = {'revenue': revenue, 'treatment_cost': treatment_cost}
         self.selection_threshold = Constants().selection_threshold
 
         self._check_input()
@@ -159,95 +168,70 @@ class CustomerMarketing(Fairness):
         Wrapper function to perform all checks using dictionaries of datatypes & dictionary of values.
         This function does not return any value. Instead, it raises an error when any of the checks from the Utility class fail.
         """
+        #import error class
         err = VeritasError()
+        #check datatype of input variables to ensure they are of the correct datatype
         check_datatype(self)
-        # ch_datatype_msg = check_datatype(self)
-        # if type(ch_datatype_msg) == str:
-        #     print(ch_datatype_msg)
-        # else:
-        #     err.push(ch_datatype_msg[0][0], var_name=ch_datatype_msg[0][1], given=ch_datatype_msg[0][2],
-        #              expected=ch_datatype_msg[0][3], function_name="_check_input")
-        check_value(self)
-        # ch_value_msg = check_value(self)
-        # if type(ch_value_msg) == str:
-        #     print(ch_value_msg)
-        # else:
-        #     err.push(ch_value_msg[0][0], var_name=ch_value_msg[0][1], given=ch_value_msg[0][2],
-        #              expected=ch_value_msg[0][3], function_name="_check_input")
 
-        # Check for length of model_params
-        # mp_errmsg = "\n The given length of model_params is {}. \n The expected length of model_params is {}."
+        #check datatype of input variables to ensure they are reasonable
+        check_value(self)
+
+        #check for length of model_params
         mp_g = len(self.model_params)
-        mp_e = int(self._model_type_to_metric_lookup[self.model_params[0].model_type][1] / 2)
+        mp_e = self._model_type_to_metric_lookup[self.model_params[0].model_type][2]
         if mp_g != mp_e:
             err.push('length_error', var_name="model_params", given=str(mp_g), expected= str(mp_e), function_name="_check_input")
 
+        #check for conflicting input values
         self._base_input_check()
-        # ch_input = self._base_input_check()
-        # if ch_input != []:
-        #     err.push(ch_input[0][0], var_name_a=ch_value_msg[0][1], some_string=ch_input[0][2],
-        #                   value=ch_input[0][3], function_name="_check_input")
+
+        #check if input variables will the correct fair_metric_name based on fairness tree
         self._fairness_metric_value_input_check()
-
-        # ch_fair_metric_value = self._fairness_metric_value_input_check()
-        # if ch_fair_metric_value != []:
-        #     err.push(ch_fair_metric_value[0][0], var_name=ch_fair_metric_value[0][1],
-        #                   given=ch_fair_metric_value[0][2],
-        #                   expected=ch_fair_metric_value[0][3], function_name="_check_input")
-            
-
 
         #check for y_prob not None if model is uplift, else check for y_pred not None
         if self.model_params[0].model_type  == "uplift":
-            #y_prob_errmsg = "\n The given dtype of y_prob is {}. \n The expected dtype of y_prob is {}."
             for i in range(len(self.model_params)):
                 if self.model_params[i].y_prob is None:
-                    self.err.push('type_error', var_name="y_prob", given= "type None", expected="type [list, np.ndarray, pd.Series]")
-                    #raise TypeError(y_prob_errmsg.format(str(y_prob_given), str(y_prob_expected)))
+                    err.push('type_error', var_name="y_prob", given= "type None", expected="type [list, np.ndarray, pd.Series]", function_name="_check_input")
         else:
-            #y_pred_errmsg = "\n The given dtype of y_pred is {}. \n The expected dtype of y_pred is {}."
             for i in range(len(self.model_params)):
                 if self.model_params[i].y_pred is None:
-                    self.err.push('type_error', var_name="y_pred", given= "type None", expected="type [list, np.ndarray, pd.Series]")
-                    #raise TypeError(y_pred_errmsg.format(str(y_pred_given), str(y_pred_expected)))
+                    err.push('type_error', var_name="y_pred", given= "type None", expected="type [list, np.ndarray, pd.Series]", function_name="_check_input")
 
-         #check if y_pred is provided but model_type is uplift, set y_pred = None
+        #check for y_pred not None if model is uplift, if yes set to None as it is not required
         if self.model_params[0].model_type == 'uplift' and self.model_params[0].y_pred is not None:
-            #self.model_params[0].y_pred = None
             for i in range(len(self.model_params)):
                 self.model_params[i].y_pred = None
+        
+        #check for y_prob is not None, if not None it cannot be an integer
+        if self.model_params[0].y_prob is not None:
+            if self.model_params[0].y_prob.dtype.kind == "i":
+                err.push('type_error', var_name="y_prob", given= "type int", expected="type float", function_name="_check_input")
 
-
-        #Check for revenue and treatment_cost
-        # r_tc_less = "\n The given value of revenue is {} and treatment_cost is {}. \n The expected value of revenue cannot be less than treatment_cost."
-        if 1 == 1:
-        #if self.model_params[0].model_type == 'uplift':
-            # errMsg = "data type error"
-            # errMsgFormat = "\n    {}: given {}, expected {}"
+        #check for revenue and treatment_cost
+        #only for uplift models based on expected profit perf metric        
+        if self.model_params[0].model_type == 'uplift' and self.perf_metric_name == "expected_profit":
             exp_type = list((int, float))
             spl_range = (0, np.inf)
+            #check if spl params are in expected type, otherwise throw exception
             for i in self.spl_params.keys() :
                 if type(self.spl_params[i]) not in exp_type :
-                    # errMsg += errMsgFormat.format(str(i),type(self.spl_params[i]), exp_type)
-                    # raise ValueError(errMsg)
                     err.push('type_error', var_name=str(i), given=type(self.spl_params[i]), expected=exp_type, function_name="_check_input")
-            
-                        
-            # errMsg = "data value error"
-            # errMsgFormat = "\n    {}: given {:.{decimal_pts}}, expected in range {}"
-            # spl_range = (0, np.inf)
-                if type(self.spl_params[i]) != type(None):
-                    if  self.spl_params[i] < spl_range[0]  or self.spl_params[i] > spl_range[1] :
-                    # errMsg += errMsgFormat.format(i, self.spl_params[i], str(spl_range), decimal_pts=self.decimals)
-                    # raise ValueError(errMsg)
-                        err.push('value_error', var_name=str(i), given=self.spl_params[i],  expected="range " + str(spl_range), function_name="_check_input")
+                #check if spl params are within expected range, otherwise throw exception
+                try:
+                    if type(self.spl_params[i]) != type(None):
+                        if  self.spl_params[i] < spl_range[0]  or self.spl_params[i] > spl_range[1] :
+                            err.push('value_error', var_name=str(i), given=self.spl_params[i],  expected="range " + str(spl_range), function_name="_check_input")
+                except:
+                    pass
+            #check if in spl params, revenue value provided is not less than treatment_cost 
             try:
                 if self.spl_params['revenue'] < self.spl_params['treatment_cost']:
-                    # raise ValueError (r_tc_less.format(str(self.spl_params['revenue']), str(self.spl_params['treatment_cost'])))
                     err.push('value_error_compare', var_name_a="revenue", var_name_b="treatment_cost", function_name="_check_input")
             except:
                 pass
         
+        #print any exceptions occured        
         err.pop()
     
     def _get_confusion_matrix(self, y_true, y_pred, sample_weight, curr_p_var = None, feature_mask = None, **kwargs):
@@ -276,6 +260,7 @@ class CustomerMarketing(Fairness):
         -------
         Confusion matrix metrics based on privileged and unprivileged groups or a list of None if curr_p_var == None
         """
+        #confusion matrix will only run for classification models
         if self._model_type_to_metric_lookup[self.model_params[0].model_type][0] == "classification" :
             if 'y_true' in kwargs:
                 y_true = kwargs['y_true']
@@ -284,41 +269,42 @@ class CustomerMarketing(Fairness):
             if 'y_pred' in kwargs:
                 y_pred = kwargs['y_pred']
             
-            if curr_p_var == None :
-                if sample_weight == None :
+            if curr_p_var is None :
+                if y_pred is None:
+                    return [None] * 4
+                
+                if sample_weight is None :
                     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
                 else :
-                    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, sample_weight).ravel()
+                    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, sample_weight = sample_weight).ravel()
                 return tp, fp, tn, fn 
             
             else:
+                if y_pred is None:
+                    return [None] * 8
+                
                 mask = feature_mask[curr_p_var]
-                if sample_weight == None :
+                if sample_weight is None :
                     mask = self.feature_mask[curr_p_var]
                     tn_p, fp_p, fn_p, tp_p = confusion_matrix(np.array(y_true)[mask], np.array(y_pred)[mask]).ravel()
                     tn_u, fp_u, fn_u, tp_u  = confusion_matrix(np.array(y_true)[~mask], np.array(y_pred)[~mask]).ravel()
                 else :
-                    tn_p, fp_p, fn_p, tp_p = confusion_matrix(np.array(y_true)[mask], np.array(y_pred)[mask], sample_weight[mask]).ravel()
-                    tn_u, fp_u, fn_u, tp_u  = confusion_matrix(np.array(y_true)[~mask], np.array(y_pred)[~mask], sample_weight[~mask]).ravel()
+                    tn_p, fp_p, fn_p, tp_p = confusion_matrix(np.array(y_true)[mask], np.array(y_pred)[mask], sample_weight = sample_weight[mask]).ravel()
+                    tn_u, fp_u, fn_u, tp_u  = confusion_matrix(np.array(y_true)[~mask], np.array(y_pred)[~mask], sample_weight = sample_weight[~mask]).ravel()
                 return tp_p, fp_p, tn_p, fn_p, tp_u, fp_u, tn_u, fn_u
         else :
-            if curr_p_var == None:
+            if curr_p_var is None:
                 return [None] * 4
     
             else:
                 return [None] * 8
-        
-        
-
+    
     def _select_fairness_metric_name(self):
         """
-        Retrieves the fairness metric name based on the values of model_type, fair_concern, fair_impact, fair_priority.
-
-        Returns
-        ---------
-        self.fair_metric_name : string
-                Name of the primary fairness metric to be used for computations in the evaluate() and/or compile() functions
+        Retrieves the fairness metric name based on the values of model_type, fair_concern, fair_impact and fair_priority.
+        Name of the primary fairness metric to be used for computations in the evaluate() and/or compile() functions                
         """
+        #if model type is uplift, will not use fairness_tree
         if self.fair_metric_name == 'auto':
             if self.model_params[0].model_type == 'uplift':
                 self.fair_metric_name = 'rejected_harm'
@@ -345,7 +331,7 @@ class CustomerMarketing(Fairness):
         e_lift : float or None
             Empirical lift value
         """
-
+        #e_lift will only run for uplift models
         if self.model_params[0].model_type == 'uplift':
             
             y_train = self.model_params[1].y_train
@@ -381,15 +367,14 @@ class CustomerMarketing(Fairness):
         Returns
         -----------
         pred_outcome : dictionary
+                Contains the probabilities of the treatment and control groups for both rejection and acquiring
         """
-
+        #pred_outcome will only run for uplift models
         if self.model_params[0].model_type == 'uplift':
 
-            #self.y_true = [model.y_true for model in self.use_case_object.model_params]
             y_prob = [model.y_prob for model in self.model_params]
             y_train = [model.y_train  if model.y_train is not None else model.y_true for model in self.model_params]        
                         
-                
             if 'y_pred_new' in kwargs:
                 y_prob = kwargs['y_pred_new']
 
@@ -410,9 +395,8 @@ class CustomerMarketing(Fairness):
                 pOcC = y_prob_temp[:, 2] / pC
                 pred_outcome[model_alias[i] + 'treatment'] = pOcT
                 pred_outcome[model_alias[i] + 'control'] = pOcC
-        
             return pred_outcome
-        
+
         else :
             return None
 
