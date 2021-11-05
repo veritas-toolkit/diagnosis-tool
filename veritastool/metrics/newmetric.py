@@ -4,19 +4,19 @@ class NewMetric: # discuss the case when more than 1 new metric is defined, new 
 
     Class Attributes
     ------------------
-    metric_type: string
+    metric_type: str
         "fair" or "perf"
 
-    metric_group: string
+    metric_group: str
         "classification", "regression" or "uplift"
 
-    metric_name: string
+    metric_name: str
         Name of metric
 
-    metric_definition: string
+    metric_definition: str
         Full name of metric
 
-    metric_parity_ratio: string
+    metric_parity_ratio: str
         "parity" or "ratio"
 
     enable_flag: boolean

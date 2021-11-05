@@ -3,6 +3,7 @@ import sklearn.metrics as skm
 from .fairness_metrics import FairnessMetrics
 from .modelrates import *
 from ..config.constants import Constants
+from scipy.ndimage.filters import gaussian_filter
 
 class TradeoffRate(object):
     """
@@ -17,25 +18,25 @@ class TradeoffRate(object):
 
         Instance attributes
         -----------
-        msg : string, default=None
+        msg : str, default=None
                 Message 
 
-        perf_metric_name : string 
+        perf_metric_name : str
                 Name of the primary performance metric to be used for computations.
 
-        fair_metric_name : string
+        fair_metric_name : str
                 Name of the primary fairness metric to be used for computations.
 
-        metric_group : string
+        metric_group : str
                 Type of fair_metric
 
         p_var : list
                 List of protected variables used for fairness analysis.
 
-        curr_p_var: string
+        curr_p_var: str
                 Current protected variable
 
-        result : dictionary, default=None
+        result : dict, default=None
                 Stores the results of the computations. Refer to the sample JSON artifact for an example.
 
         fair_neutral_tolerance : float
@@ -44,20 +45,26 @@ class TradeoffRate(object):
         proportion_of_interpolation_fitting : float
                 Proportion of interpolation fitting
 
-        y_true : array of shape (n_samples,)
+        y_true : numpy.ndarray
                 Ground truth target values.
 
-        y_prob : array of shape (n_samples, L), default=None
-                Predicted probabilities as returned by classifier. For uplift models, L = 4. Else, L = 1.
+        y_prob : numpy.ndarray, default=None
+                Predicted probabilities as returned by classifier. 
+                For uplift models, L = 4. Else, L = 1 where shape is (n_samples, L)
 
-        sample_weight : array of shape (n_samples,)
+        sample_weight : numpy.ndarray
                 Used to normalize y_true & y_pred.
 
-        feature_mask : dictionary of lists
+        feature_mask : dict of lists
                 Stores the mask array for every protected variable applied on the x_test dataset.
 
-        map_metric_to_method : dictionary
+        map_metric_to_method : dict
                 Mapping of metric name to respective compute function
+                
+        sigma : float or integer , default = 0
+                 Standard deviation for Gaussian kernel for smoothing the contour lines of primary fairness metric. 
+                 When sigma <= 0, smoothing is turn off.
+                 Suggested to try sigma = 3 or above if noisy contours are observed.
         """
         self.msg = None
         self.perf_metric_name = usecase_obj.perf_metric_name
@@ -119,7 +126,7 @@ class TradeoffRate(object):
         'expected_profit': self._compute_expected_profit_tr,
         'emp_lift': self._compute_emp_lift_tr
         }
-
+        self.sigma = usecase_obj.sigma
     def compute_tradeoff(self, n_threads, tdff_pbar):
         """
         Computes the tradeoff values.
@@ -134,7 +141,7 @@ class TradeoffRate(object):
 
         Returns
         ------------
-        result : dictionary
+        result : dict
                 Stores the results of the computations.
                     - fairness metric name
                     - performance metric name
@@ -151,8 +158,8 @@ class TradeoffRate(object):
         if self.metric_group == "uplift":
 
             # define meshgrid
-            self.th_x = np.linspace(min(self.e_lift)*0.7, max(self.e_lift)*0.7, Constants().tradeoff_threshold_bins)
-            self.th_y = np.linspace(min(self.e_lift)*0.7, max(self.e_lift)*0.7, Constants().tradeoff_threshold_bins)
+            self.th_x = np.linspace(min(self.e_lift)*Constants().uplift_threshold_proportion, max(self.e_lift)*Constants().uplift_threshold_proportion, Constants().tradeoff_threshold_bins)
+            self.th_y = np.linspace(min(self.e_lift)*Constants().uplift_threshold_proportion, max(self.e_lift)*Constants().uplift_threshold_proportion, Constants().tradeoff_threshold_bins)
             self.th_a, self.th_b = np.meshgrid(self.th_x, self.th_y, sparse=True)
 
             #access from the special params
@@ -177,7 +184,8 @@ class TradeoffRate(object):
 
                 self.result[i]['perf'] = perf_values
 
-                self.result[i]['fair'] = fair_values
+                fair_values_smooted = gaussian_filter(fair_values, self.sigma)
+                self.result[i]['fair'] = fair_values_smooted
 
                 self.result[i]['th_x'] = self.th_x
                 self.result[i]['th_y'] = self.th_y
@@ -225,7 +233,9 @@ class TradeoffRate(object):
 
                 perf_values = self.map_metric_to_method[self.perf_metric_name]()
 
-                self.result[i]['fair'] = fair_values
+                fair_values_smooted = gaussian_filter(fair_values, self.sigma)
+                self.result[i]['fair'] = fair_values_smooted
+                
                 self.result[i]['perf'] = perf_values
 
                 self.result[i]['th_x'] = self.th_x
@@ -235,6 +245,7 @@ class TradeoffRate(object):
                 self.result[i]['max_perf_point'] = best_th2
                 self.result[i]['max_perf_single_th'] = best_th1
                 self.result[i]['max_perf_neutral_fair'] = best_th3
+                    
                 tdff_pbar.update(prog)
         else :
             self.result = None

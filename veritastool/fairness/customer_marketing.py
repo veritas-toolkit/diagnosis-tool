@@ -13,7 +13,7 @@ class CustomerMarketing(Fairness):
 
     Class Attributes
     ------------------
-    _model_type_to_metric_lookup: dictionary
+    _model_type_to_metric_lookup: dict
                 Used to associate the model type (key) with the metric type, expected size of positive and negative labels (value) & length of model_params respectively.
                 e.g. {“rejection”: (“classification”, 2, 1), “uplift”: (“uplift”, 4, 2), “a_new_type”: (“regression”, -1, 1)}
 
@@ -26,14 +26,15 @@ class CustomerMarketing(Fairness):
         """
         Parameters
         ----------
-        model_params: list containing ModelContainer object(s)
+        model_params: list 
                 Data holder that contains all the attributes of the model to be assessed. Compulsory input for initialization.
+                It holds one ModelContainer object(s).
                 If a single object is provided, it will be taken as either a "rejection" or "propensity" model according to the model_type flag.
                 If 2 objects are provided, while the model_type flag is "uplift", the first one corresponds to rejection model while the second one corresponds to propensity model.
                 **x_train[0] = x_train[1] and x_test[0]=x_test[1] must be the same when len(model_param) > 1
 
         fair_threshold: int or float
-                Value between 0 and 100. If a float between 0 and 1 (not inclusive) is provided, it is used to benchmark against the primary fairness metric value to determine the fairness_conclusion.
+                Value between 0 and 100. If a float between 0 and 1 (inclusive) is provided, it is used to benchmark against the primary fairness metric value to determine the fairness_conclusion.
                 If an integer between 1 and 100 is provided, it is converted to a percentage and the p % rule is used to calculate the fairness threshold value.
 
         Instance Attributes
@@ -59,19 +60,19 @@ class CustomerMarketing(Fairness):
         revenue: int or float, default=None
                 Revenue gained per customer
 
-        fairness_metric_value_input : dictionary
+        fairness_metric_value_input : dict
                 Contains the p_var and respective fairness_metric and value 
                 e.g. {"gender": {"fnr_parity": 0.2}}
 
         proportion_of_interpolation_fitting : float, default=1.0
                 Proportion of interpolation fitting
 
-        _use_case_metrics: dictionary of lists, default=None
+        _use_case_metrics: dict of list, default=None
                 Contains all the performance & fairness metrics for each use case.
                 e.g. {"fair ": ["fnr_parity", ...], "perf": ["balanced_acc, ..."]}
                 Dynamically assigned during initialisation by using the _metric_group_map in Fairness/Performance Metrics class and the _model_type_to_metric above.
 
-        _input_validation_lookup: dictionary
+        _input_validation_lookup: dict
                 Contains the attribute and its correct data type for every argument passed by user. Used to perform the Utility checks.
                 e.g. _input_validation_lookup = {
                 "fair_threshold": [(float,), (int(config.get('threshold','fair_threshold_low')), int(config.get('threshold','fair_threshold_high')))],
@@ -100,7 +101,7 @@ class CustomerMarketing(Fairness):
         e_lift : float
                 Empirical lift
 
-        pred_outcome: dictionary
+        pred_outcome: dict
                 Contains the probabilities of the treatment and control groups for both rejection and acquiring
         """
         super().__init__(model_params)
@@ -241,19 +242,19 @@ class CustomerMarketing(Fairness):
 
         Parameters
         ----------
-        y_true : np.ndarray
+        y_true : numpy.ndarray
                 Ground truth target values.
 
-        y_pred : np.ndarray
+        y_pred : numpy.ndarray
                 Copy of predicted targets as returned by classifier.
 
-        sample_weight : array of shape (n_samples,), default=None
+        sample_weight : numpy.ndarray, default=None
                 Used to normalize y_true & y_pred.
 
         curr_p_var : string, default=None
                 Current protected variable
 
-        feature_mask : dictionary of lists, default = None
+        feature_mask : dict of list, default = None
                 Stores the mask array for every protected variable applied on the x_test dataset.
 
         Returns
@@ -323,7 +324,7 @@ class CustomerMarketing(Fairness):
 
         Other Parameters
         ----------
-        y_pred_new : list of len = k of array of shape (n_samples,)
+        y_pred_new : numpy.ndarray or None
                 Predicted targets as returned by classifier.
 
         Returns
@@ -361,12 +362,12 @@ class CustomerMarketing(Fairness):
 
         Other parameters
         ---------------
-        y_pred_new : list of len = k of array of shape (n_samples,)
+        y_pred_new : numpy.ndarray
                 Predicted targets as returned by classifier.
 
         Returns
         -----------
-        pred_outcome : dictionary
+        pred_outcome : dict
                 Contains the probabilities of the treatment and control groups for both rejection and acquiring
         """
         #pred_outcome will only run for uplift models

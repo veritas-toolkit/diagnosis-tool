@@ -13,7 +13,7 @@ class CreditScoring(Fairness):
 
     Class Attributes
     ------------------
-    _model_type_to_metric_lookup: dictionary
+    _model_type_to_metric_lookup: dict
                 Used to associate the model type (key) with the metric type, expected size of positive and negative labels (value) & length of model_params respectively.
                 e.g. {“rejection”: (“classification”, 2, 1), “uplift”: (“uplift”, 4, 1), “a_new_type”: (“regression”, -1, 1)}
     """
@@ -24,53 +24,54 @@ class CreditScoring(Fairness):
         """
         Parameters
         ----------
-        model_params: list containing 1 ModelContainer object
-                Data holder that contains all the attributes of the model to be assessed. Compulsory input for initialization. Single object corresponds to model_type of "default".
+        model_params: list
+                Data holder that contains all the attributes of the model to be assessed. Compulsory input for initialization. 
+                It holds one ModelContainer object. Single object corresponds to model_type of "credit".
 
         fair_threshold: int or float
-                Value between 0 and 100. If a float between 0 and 1 (not inclusive) is provided, it is converted to a percentage and the p % rule is used to calculate the fairness threshold value.        
+                Value between 0 and 100. If a float between 0 and 1 (inclusive) is provided, it is converted to a percentage and the p % rule is used to calculate the fairness threshold value.        
                 If an integer between 1 and 100 is provided, it is converted to a percentage and the p % rule is used to calculate the fairness threshold value.
 
         Instance Attributes
         --------------------
-        perf_metric_name: string, default="balanced_acc"
+        perf_metric_name: str, default="balanced_acc"
                 Name of the primary performance metric to be used for computations in the evaluate() and/or compile() functions.
 
-        fair_metric_name : string, default="auto"
+        fair_metric_name : str, default="auto"
                 Name of the primary fairness metric to be used for computations in the evaluate() and/or compile() functions.
 
-        fair_concern: string, default="eligible"
+        fair_concern: str, default="eligible"
                 Used to specify a single fairness concern applied to all protected variables. Could be "eligible" or "inclusive" or "both".
 
-        fair_priority: string, default="benefit"
+        fair_priority: str, default="benefit"
                 Used to pick the fairness metric according to the Fairness Tree methodology. Could be "benefit" or "harm"
 
-        fair_impact: string, default="normal"
+        fair_impact: str, default="normal"
                 Used to pick the fairness metric according to the Fairness Tree methodology. Could be "normal" or "significant" or "selective"
 
-        num_applicants: dictionary of lists, default=None
+        num_applicants: dict of list, default=None
                 Contains the number of rejected applicants for the privileged and unprivileged groups for each protected feature.
                 e.g. {"gender": [10, 20], "race": [12, 18]}
 
-        base_default_rate: dictionary of lists, default=None
+        base_default_rate: dict of list, default=None
                 Contains the base default rates for the privileged and unprivileged groups for each protected feature.
                 e.g. {"gender": [10, 20], "race": [12, 18]} 
 
-        fairness_metric_value_input : dictionary
+        fairness_metric_value_input : dict
                 Contains the p_var and respective fairness_metric and value 
                 e.g. {"gender": {"fnr_parity": 0.2}}
 
-        _rejection_inference_flag: dictionary
+        _rejection_inference_flag: dict
                 Flag to ascertain whether rejection inference technique should be used for each protected feature to impute the target value for rejected cases, allowing reject cohort to be used in model building.
                 If both the base_default_rate & num_applicants are not None, the flag will be set to True.
                 e.g. {"gender": True, "race": False, "age": True}
 
-        _use_case_metrics: dictionary of lists
+        _use_case_metrics: dict of list
                 Contains all the performance & fairness metrics for each use case.
                 e.g. {"fair ": ["fnr_parity", ...], "perf": ["balanced_acc, ..."]}
                 Dynamically assigned during initialisation by using the _metric_group_map in Fairness/Performance Metrics class and the _model_type_to_metric above.
 
-        _input_validation_lookup: dictionary
+        _input_validation_lookup: dict
                 Contains the attribute and its correct data type for every argument passed by user. Used to perform the Utility checks.
                 e.g. _input_validation_lookup = {
                 "fair_threshold": [(float, int), (Constants().fair_threshold_low), Constants().fair_threshold_high],
@@ -81,8 +82,8 @@ class CreditScoring(Fairness):
                 "concern": [(str,), ["eligible", "inclusion", "both"]]
                 }
 
-        spl_params : dictionary
-                Dictionary of parameters that only belong to a use case
+        spl_params : dict
+                     of parameters that only belong to a use case
 
         k : int
                 Integer from Constants class to calculate confidence interval
@@ -99,7 +100,7 @@ class CreditScoring(Fairness):
         e_lift : float, default=None
                 Empirical lift
 
-        pred_outcome: dictionary, default=None
+        pred_outcome: dict, default=None
                 Contains the probabilities of the treatment and control groups for both rejection and acquiring
         """
         super().__init__(model_params)
@@ -401,19 +402,19 @@ class CreditScoring(Fairness):
 
         Parameters
         ----------
-        y_true : np.ndarray
+        y_true : numpy.ndarray
                 Ground truth target values.
 
-        y_pred : np.ndarray
+        y_pred : numpy.ndarray
                 Copy of predicted targets as returned by classifier.
 
-        sample_weight : array of shape (n_samples,), default=None
+        sample_weight : numpy, default=None
                 Used to normalize y_true & y_pred.
 
         curr_p_var : string, default=None
                 Current protected variable
 
-        feature_mask : dictionary of lists, default = None
+        feature_mask : dict of list, default = None
                 Stores the mask array for every protected variable applied on the x_test dataset.
 
         Returns

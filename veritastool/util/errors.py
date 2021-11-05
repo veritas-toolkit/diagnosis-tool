@@ -9,7 +9,7 @@ class MyError(Exception):
         """
         Instance attributes
         -----------------------
-        message : string
+        message : str
                Holds the messages for errors
         """
         if args:

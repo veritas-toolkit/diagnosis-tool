@@ -333,3 +333,5 @@ def test_fairness_tree():
     cre_sco_obj.fair_priority = 'harm'
     cre_sco_obj._fairness_tree(is_pos_label_favourable = False)
     assert cre_sco_obj.fair_metric_name == 'fnr_parity'
+
+    

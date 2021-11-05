@@ -11,13 +11,14 @@ class ModelRateClassify:
         """
         Parameters
         -------------
-        y_true: array of shape (n_samples,)
+        y_true : numpy.ndarray, default=None
                 Ground truth target values.
 
-        y_prob : array of shape (n_samples, L)
-                Predicted probabilities as returned by classifier. For uplift models, L = 4. Else, L = 1.
+        y_prob : numpy.ndarray, default=None
+                Predicted probabilities as returned by classifier. 
+                For uplift models, L = 4. Else, L = 1 where shape is (n_samples, L)
         
-        sample_weight : array of shape (n_samples,), default=None
+        sample_weight : numpy.ndarray, default=None
                 Used to normalize y_true & y_pred.
 
         Instance Attributes
@@ -53,37 +54,38 @@ class ModelRateClassify:
         Computes the base rates for classification models.
         Parameters
         -------------
-        y_true: array of shape (n_samples,)
+        y_true: numpy.ndarray 
                 Ground truth target values.
 
-        y_prob : array of shape (n_samples, L)
-                Predicted probabilities as returned by classifier. For uplift models, L = 4. Else, L = 1.
-        
-        sample_weight : array of shape (n_samples,), default=None
+        y_prob : numpy.ndarray, default=None
+                Predicted probabilities as returned by classifier. 
+                For uplift models, L = 4. Else, L = 1 where shape is (n_samples, L)
+                
+        sample_weight : numpy.ndarray, default=None
                 Used to normalize y_true & y_pred.
 
         Returns
         ---------
-        ths: array
-                Array of size len(y_true) of threshold values equally binned between 0 and 1.
+        ths: numpy.ndarray
+                Threshold values equally binned between 0 and 1 where array size is len(y_true)
 
-        tpr: array
-                Array of size len(y_true) of true positive rate values
+        tpr: numpy.ndarray
+                True positive rate values where array size is len(y_true)
 
-        fpr: array
-                Array of size len(y_true) of false positive rate values.
+        fpr: numpy.ndarray
+                False positive rate values where array size is len(y_true)
 
-        ppv: array
-                Array of size len(y_true) of precision scores.
+        ppv: numpy.ndarray
+                Precision scores where array size is len(y_true)
 
-        forr: array
-                Array of size len(y_true) of false omission rate parity values.
+        forr: numpy.ndarray
+                False omission rate parity values where array size is len(y_true)
 
-        selection_rate: array
-                Array of size len(y_true) of selection rate values.
+        selection_rate: numpy.ndarray
+                Selection rate values where array size is len(y_true)
 
         base_selection_rate: array
-                Array of size len(y_true) of base selection rate values.
+                Base selection rate values where array size is len(y_true)
         """
         fpr, tpr, ths = skm.roc_curve(y_true, y_prob, pos_label=1, sample_weight = sample_weight)
         # roc_curve sets max threshold arbitrarily above 1
@@ -121,15 +123,15 @@ class ModelRateUplift:
         """
         Parameters
         -------------
-        y_true: array of shape (n_samples,)
+        y_true: numpy.ndarray
                 Ground truth target values.
                 
-        pred_outcome : dictionary
+        pred_outcome : dict
 
         e_lift : float
                 Empirical lift
 
-        feature_mask : dictionary of lists
+        feature_mask : dict of lists
                 Stores the mask array for every protected variable applied on the x_test dataset.
 
         cost: float
@@ -175,15 +177,15 @@ class ModelRateUplift:
 
         Parameters
         ------------------
-        y_true : array of shape (n_samples,)
+        y_true : numpy.ndarray
                 Ground truth target values.
                 
-        pred_outcome : dictionary
+        pred_outcome : dict
 
         e_lift : float
                 Empirical lift
 
-        feature_mask : dictionary of lists
+        feature_mask : dict of lists
                 Stores the mask array for every protected variable applied on the x_test dataset.
 
         cost: float
@@ -197,20 +199,20 @@ class ModelRateUplift:
 
         Returns
         -----------------
-        ths: array
-                Array of size len(y_true) of threshold values equally binned between -0.5 and 0.5.
+        ths: numpy.ndarray
+                Threshold values equally binned between -0.5 and 0.5 where array size is len(y_true)
 
-        harm_array: array
-                Array of size len(y_true) of rejected harm values
+        harm_array: numpy.ndarray
+                Rejected harm values where array size is len(y_true)
 
-        profit_array: array
-                Array of size len(y_true) of profit values.
+        profit_array: numpy.ndarray
+                Profit values where array size is len(y_true)
 
-        emp_lift_treatment_array: array
-                Array of empirical lift for treatment group
+        emp_lift_treatment_array: numpy.ndarray
+                Empirical lift for treatment group
 
-        emp_lift_control_array: array
-                Array of empirical lift for control group
+        emp_lift_control_array: numpy.ndarray
+                Empirical lift for control group
         """
         harm_array = []
         profit_array = []

@@ -12,7 +12,7 @@ class FairnessMetrics:
 
     Class Attributes
     ----------
-    map_fair_metric_to_group : dictionary
+    map_fair_metric_to_group : dict
         Maps the fairness metrics to its name, metric_group (classification, uplift, or regression), type (parity or odds), whether the metric is related to tradeoff and whether the metric can be a primary metric.
         e.g. {'equal_opportunity': ('Equal Opportunity', 'classification', 'parity', True, True), 'equal_odds': ('Equalized Odds', 'classification', 'parity', True, True)}
     """
@@ -60,33 +60,37 @@ class FairnessMetrics:
                 Maps the fairness metrics to the corresponding compute functions.
                 e.g. {'equal_opportunity': _compute_equal_opportunity, 'equal_odds': _compute_equal_odds}
 
-        result : dictionary of tuples, default=None
+        result : dict of tuple, default=None
                 Data holder that stores the following for every protected variable:
                 - fairness metric value, corresponding confidence interval & neutral position for all fairness metrics.
                 - feature distribution
 
-        y_true : array of shape (n_samples,), default=None
+        y_true : numpy.ndarray, default=None
                 Ground truth target values.
 
-        y_pred : array of shape (n_samples,), default=None
+        y_pred : numpy.ndarray, default=None
                 Predicted targets as returned by classifier.
 
-        y_prob : array of shape (n_samples, L), default=None
-                Predicted probabilities as returned by classifier. For uplift models, L = 4. Else, L = 1.
+        y_train :numpy.ndarray, default=None
+                Ground truth for training data.
 
-        feature_mask : array of shape (n_samples,), default=None
+        y_prob : numpy.ndarray, default=None
+                Predicted probabilities as returned by classifier. 
+                For uplift models, L = 4. Else, L = 1 where shape is (n_samples, L)
+
+        feature_mask : numpy.ndarray, default=None
                 Array of the masked protected variable according to the privileged and unprivileged groups.
 
-        sample_weight : array of shape (n_samples,), default=None
+        sample_weight : numpy.ndarray, default=None
                 Used to normalize y_true & y_pred.
 
         p_var : list, default=None
                 List of protected variables used for fairness analysis.
 
-        fair_metric_name: string, default=None
+        fair_metric_name: str, default=None
                 Name of the primary fairness metric to be used for computations in the evaluate() and/or compile() functions
 
-        _use_case_metrics: dictionary of lists, default=None
+        _use_case_metrics: dict of list, default=None
                 Contains all the performance & fairness metrics for each use case. 
                 {"fair ": ["fnr_parity", ...], "perf": ["balanced_accuracy, ..."]}
                 Dynamically assigned during initialisation by using the _metric_group_map in Fairness/Performance Metrics class and the _model_type_to_metric above.
@@ -156,7 +160,7 @@ class FairnessMetrics:
 
         Returns
         ----------
-        self.result: dictionary, default = None
+        self.result: dict, default = None
                 Data holder that stores the following for every protected variable.:
                 - fairness metric value & corresponding confidence interval for all fairness metrics.
                 - feature distribution
@@ -245,7 +249,7 @@ class FairnessMetrics:
         Parameters
         ----------
         metric_obj : FairnessMetrics object
-        index : array of shape (n,m)
+        index : numpy.ndarray
         eval_pbar : tqdm object
                 Progress bar
         worker_progress : int
@@ -281,7 +285,7 @@ class FairnessMetrics:
 
         Parameters
         ----------
-        metric_name : string
+        metric_name : str
                 Name of fairness metric
 
         Other Parameters
@@ -290,7 +294,7 @@ class FairnessMetrics:
 
         Returns
         ----------
-        result: dictionary, default = None
+        result: dict, default = None
                 Data holder that stores the following for every protected variable.:
                 - fairness metric value, corresponding confidence interval for chosen fairness metric.
                 - feature distribution
@@ -327,7 +331,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -352,7 +356,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -376,7 +380,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -400,7 +404,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -424,7 +428,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -449,7 +453,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -473,7 +477,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -521,7 +525,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -548,7 +552,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -574,7 +578,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -606,7 +610,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -639,7 +643,7 @@ class FairnessMetrics:
     
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
     
         Returns
@@ -665,7 +669,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -702,7 +706,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -739,7 +743,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -763,7 +767,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -789,7 +793,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -817,7 +821,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -837,9 +841,10 @@ class FairnessMetrics:
         e_y_pred_curr_p_var = self._get_entropy(df,['y_pred', 'curr_p_var'])
         e_y_true_y_pred_curr_p_var = self._get_entropy(df,['y_true', 'y_pred', 'curr_p_var'])
         e_y_true = self._get_entropy(df,['y_true'])
-        mi_separation = (e_y_true_curr_p_var + e_y_pred_curr_p_var - e_y_true_y_pred_curr_p_var - e_y_true)/e_y_true_curr_p_var
+        e_curr_p_var_y_true_conditional = e_y_true_curr_p_var - e_y_true
+        mi_separation = (e_y_true_curr_p_var + e_y_pred_curr_p_var - e_y_true_y_pred_curr_p_var - e_y_true)/e_curr_p_var_y_true_conditional
             
-        return (mi_separation, None)
+        return (mi_separation, None)            
     
     def _compute_mi_sufficiency(self, **kwargs) :
         """
@@ -847,7 +852,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -867,7 +872,8 @@ class FairnessMetrics:
         e_y_true_y_pred = self._get_entropy(df,['y_true', 'y_pred'])
         e_y_true_y_pred_curr_p_var = self._get_entropy(df,['y_true', 'y_pred', 'curr_p_var'])
         e_y_pred = self._get_entropy(df,['y_pred'])
-        mi_sufficiency = (e_y_pred_curr_p_var + e_y_true_y_pred - e_y_true_y_pred_curr_p_var - e_y_pred)/e_y_pred_curr_p_var
+        e_curr_p_var_y_pred_conditional = e_y_pred_curr_p_var - e_y_pred
+        mi_sufficiency = (e_y_pred_curr_p_var + e_y_true_y_pred - e_y_true_y_pred_curr_p_var - e_y_pred)/e_curr_p_var_y_pred_conditional
             
         return (mi_sufficiency, None)
     
@@ -877,7 +883,7 @@ class FairnessMetrics:
 
         Parameters
         -----------
-        df : pandas DataFrame
+        df : pandas.DataFrame
                 Data set
 
         columns : list of strings
@@ -904,7 +910,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -951,7 +957,7 @@ class FairnessMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
                 Copy of predicted targets as returned by classifier.
 
         Returns

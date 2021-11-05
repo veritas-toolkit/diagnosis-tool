@@ -12,10 +12,11 @@ class PerformanceMetrics:
 
     Class Attributes
     ------------------------
-    map_perf_metric_to_group : dictionary
+    map_perf_metric_to_group : dict
             Maps the performance metric names to their corresponding full names, metric group eg classification or regression metric types, and whether it can be a primary metric
     """
-    map_perf_metric_to_group = {'selection_rate':('Selection Rate', 'classification', True),
+    map_perf_metric_to_group = {
+                                'selection_rate':('Selection Rate', 'classification', True),
                                 'accuracy': ('Accuracy', 'classification', True),
                                 'balanced_acc': ('Balanced Accuracy', 'classification', True),
                                 'recall': ('Recall', 'classification', True),
@@ -43,35 +44,36 @@ class PerformanceMetrics:
 
         Instance Attributes
         ------------------------
-        map_perf_metric_to_method : dictionary
+        map_perf_metric_to_method : dict
                 Maps the performance metric names to their corresponding functions.
         
-        result : dictionary of tuples, default=None
+        result : dict of dict, default=None
                 Stores the following:
                 - percentage distribution of classes (dictionary)
                 - every performance metric named inside the include_metrics list together with its associated confidence interval (dictionary)
                 - calibration curve (dictionary)
                 - performance dynamic values (dictionary)
 
-        y_true : array of shape (n_samples,), default=None
+        y_true : numpy.ndarray, default=None
                 Ground truth target values.
 
-        y_pred : array of shape (n_samples,), default=None
+        y_pred : numpy.ndarray, default=None
                 Predicted targets as returned by classifier.
 
-        y_train : array of shape (n_samples,), default=None
+        y_train :numpy.ndarray, default=None
                 Ground truth for training data.
 
-        y_prob : array of shape (n_samples, L), default=None
-                Predicted probabilities as returned by classifier. For uplift models, L = 4. Else, L = 1.
+        y_prob : numpy.ndarray, default=None
+                Predicted probabilities as returned by classifier. 
+                For uplift models, L = 4. Else, L = 1 where shape is (n_samples, L)
 
-        sample_weight : array of shape (n_samples,), default=None
+        sample_weight : numpy.ndarray, default=None
                 Used to normalize y_true & y_pred.
 
-        perf_metric_name : string, default=None
+        perf_metric_name : str, default=None
                 Performance metric name
 
-        _use_case_metrics : dictionary of lists, default=None
+        _use_case_metrics : dict of lists, default=None
                 Contains all the performance & fairness metrics for a use case.
                 Dynamically assigned during initialisation by using the _metric_group_map in Fairness/Performance Metrics class and the _model_type_to_metric.
 
@@ -145,7 +147,7 @@ class PerformanceMetrics:
 
         Returns
         ----------
-        self.result : dictionary of lists
+        self.result : dict of lists
                 Stores the class distribution, weighted confusion matrix, performance metric values and performance dynamics results
         """
 
@@ -220,7 +222,7 @@ class PerformanceMetrics:
         Parameters
         ----------
         metric_obj : PerformanceMetrics object
-        index : array of shape (n,m)
+        index : list
         eval_pbar : tqdm object
                 Progress bar
         worker_progress : int
@@ -252,7 +254,7 @@ class PerformanceMetrics:
 
         Parameters
         ----------
-        metric_name : string
+        metric_name : str
             Name of fairness metric
 
         Other parameters
@@ -261,7 +263,7 @@ class PerformanceMetrics:
 
         Returns
         ----------
-        perf_metric_values : dictionary of tuples
+        perf_metric_values : dict of tuples
             Stores both the performance metric value and the corresponding confidence interval for every metric in include_metrics
         """
         return self.map_perf_metric_to_method[metric_name](**kwargs)
@@ -272,7 +274,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -295,7 +297,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -318,7 +320,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -341,7 +343,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -363,7 +365,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -385,7 +387,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-         y_pred_new : np.ndarray
+         y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -407,7 +409,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -429,7 +431,7 @@ class PerformanceMetrics:
         
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -455,7 +457,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -497,7 +499,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -541,7 +543,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -571,7 +573,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -594,7 +596,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -618,7 +620,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -641,7 +643,7 @@ class PerformanceMetrics:
     
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
     
         Returns
@@ -665,7 +667,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -696,7 +698,7 @@ class PerformanceMetrics:
 
         Other Parameters
         ----------
-        y_pred_new : np.ndarray
+        y_pred_new : numpy.ndarray
             Copy of predicted targets as returned by classifier.
 
         Returns
@@ -727,7 +729,7 @@ class PerformanceMetrics:
 
         Returns
         ----------
-        d : dictionary
+        d : dict
                 100 values of selection rate, balanced accuracy, F1 score, expected_profit and threshold
         """
         metric_group = self.map_perf_metric_to_group.get(self.perf_metric_name)[1]
@@ -780,18 +782,19 @@ class PerformanceMetrics:
 
         Parameters
         ----------
-        y_true: array
+        y_true: numpy.ndarray
             Ground truth target values.
 
-        y_prob : array of shape (n_samples, L), default=None
-                Predicted probabilities as returned by classifier. For uplift models, L = 4. Else, L = 1.
+        y_prob : numpy.ndarray, default=None
+                Predicted probabilities as returned by classifier. 
+                For uplift models, L = 4. Else, L = 1 where shape is (n_samples, L)
 
         n_bins : int, default=10
             Number of equal-width bins in the range
 
         Returns
         ----------
-        calibration_curve_bin : dictionary
+        calibration_curve_bin : dict
             Contains prob_true, prob_pred and score as floats
         """
         metric_group = self.map_perf_metric_to_group.get(self.perf_metric_name)[1]
@@ -810,17 +813,17 @@ class PerformanceMetrics:
         Calculates the proportion of favourable and unfavourable labels in y_true.
         Parameters
         ----------
-        y_true: np.ndarray
+        y_true: numpy.ndarray
             Ground truth target values.
 
-        pos_label : array, default=1
+        pos_label : list, default=1
             Label values which are considered favorable.
             For all model types except uplift, converts the favourable labels to 1 and others to 0.
             For uplift, user is to provide 2 label names e.g. [["a"], ["b"]] in fav label. The first will be mapped to treatment responded (TR) & second to control responded (CR).
 
         Returns
         ----------
-        y_true_counts : dictionary
+        y_true_counts : dict
             Dictionary of proportion of classes
         """
         if self.label_size == -1:

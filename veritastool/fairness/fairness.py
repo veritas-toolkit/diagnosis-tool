@@ -31,7 +31,8 @@ class Fairness:
         """
         Parameters
         ------------------
-        model_params : object of type ModelContainer
+        model_params : list
+                It holds ModelContainer object(s).
                 Data holder that contains all the attributes of the model to be assessed. Compulsory input for initialization.
 
         Instance Attributes
@@ -42,7 +43,7 @@ class Fairness:
         perf_metric_obj : object, default=None
                 Stores the PerformanceMetrics() object and contains the result of the computations.
 
-        percent_distribution : dictionary, default=None
+        percent_distribution : dict, default=None
                 Stores the percentage breakdown of the classes in y_true.
 
         calibration_score : float, default=None
@@ -54,10 +55,10 @@ class Fairness:
         correlation_output : dict, default=None
                 Pairwise correlation of most important features (top 20 feature + protected variables).
 
-        feature_mask : dictionary of lists, default=None
+        feature_mask : dict of list, default=None
                 Stores the mask array for every protected variable applied on the x_test dataset.
 
-        fair_conclusion : dictionary, default=None
+        fair_conclusion : dict, default=None
                 Contains conclusion of how the primary fairness metric compares against the fairness threshold. The key will be the protected variable and the conclusion will be "fair" or "unfair".
                 e.g. {"gender": {'fairness_conclusion': "fair", "threshold": 0.01}, "race":{'fairness_conclusion': "unfair", "threshold": 0.01}}
 
@@ -91,7 +92,7 @@ class Fairness:
                 False = Skipped (if the correlation dataframe is not provided in ModelContainer)
                 True = Complete
 
-        feature_imp_values: dictionary of lists, default = None
+        feature_imp_values: dict of list, default = None
                 Contains the difference in metric values between the original and loco models for each protected variable.
 
                 {"gender":
@@ -107,6 +108,11 @@ class Fairness:
                 }
 
                 flip = "fair to fair", "unfair to fair", "fair to unfair", "unfair to unfair"
+        
+        sigma : float or int , default = 0
+                 Standard deviation for Gaussian kernel for smoothing the contour lines of primary fairness metric. 
+                 When sigma <= 0, smoothing is turn off.
+                 Suggested to try sigma = 3 or above if noisy contours are observed.                
 
         err : object
                 VeritasError object
@@ -128,6 +134,7 @@ class Fairness:
         self.feature_imp_values = None
         self.feature_imp_status_corr = False
         self.feature_imp_status_loo = False
+        self.sigma = None
         self.err = VeritasError()
         
     def evaluate(self, visualize=False, output=True, n_threads=1, seed=None):
@@ -195,7 +202,7 @@ class Fairness:
 
         Returns
         ----------
-        out : dictionary
+        out : dict
             Fairness threshold and conclusion for the chosen protected variable
         """
         #for feature importance, when privileged metric values have been overwritten during leave-one-out analysis
@@ -236,7 +243,7 @@ class Fairness:
 
         Returns
         ----------
-        self.fair_conclusion : dictionary
+        self.fair_conclusion : dict
             fair_conclusion and threshold for every protected variable
         """
         self.fair_conclusion = {}
@@ -440,7 +447,7 @@ class Fairness:
         self._generate_model_artifact()
 
 
-    def tradeoff(self, output=True, n_threads=1):
+    def tradeoff(self, output=True, n_threads=1, sigma = 0):
         """
         Computes the trade-off between performance and fairness over a range  of threshold values. 
         If output = True, run the _print_tradeoff() function.
@@ -452,6 +459,11 @@ class Fairness:
 
         n_threads : int, default=1
                 Number of currently active threads of a job
+                
+        sigma : float or int , default = 0
+                 Standard deviation for Gaussian kernel for smoothing the contour lines of primary fairness metric. 
+                 When sigma <= 0, smoothing is turn off.
+                 Suggested to try sigma = 3 or above if noisy contours are observed.                
         """
         #if y_prob is None, skip tradeoff
         if self.model_params[0].y_prob is None:
@@ -462,6 +474,7 @@ class Fairness:
             return
         #check if tradeoff hasn't run, only run if haven't
         elif self.tradeoff_status == 0:
+            self.sigma = sigma
             n_threads = check_multiprocessing(n_threads)
             #to show progress bar
             tdff_pbar = tqdm(total=100, desc='Tradeoff', bar_format='{l_bar}{bar}')
@@ -1487,7 +1500,7 @@ class Fairness:
 
         Returns
         ----------
-        feature_mask : dictionary of lists
+        feature_mask : dict of list
                 Stores the mask array for every protected variable applied on the x_test dataset.
         """
         feature_mask = {}

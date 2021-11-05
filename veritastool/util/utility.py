@@ -20,7 +20,7 @@ def check_datatype(obj_in):
 
     Returns:
     ---------------
-    successMsg : string
+    successMsg : str
             If there are no errors, a success message will be returned   
     """
     err = VeritasError()
@@ -76,7 +76,7 @@ def check_value(obj_in):
 
     Returns:
     ---------------
-    successMsg : string
+    successMsg : str
             If there are no errors, a success message will be returned   
     """
     err = VeritasError()
@@ -207,15 +207,15 @@ def check_label(y, pos_label, neg_label=None):
 
     Parameters
     -----------
-    y : array of shape (n_samples,)
+    y : numpy.ndarray
             Ground truth target values.
 
-    pos_label : array
+    pos_label : list
             Label values which are considered favorable.
             For all model types except uplift, converts the favourable labels to 1 and others to 0.
             For uplift, user is to provide 2 label names e.g. [["a"], ["b"]] in fav label. The first will be mapped to treatment responded (TR) & second to control responded (CR).
 
-    neg_label : array, default=None
+    neg_label : list, default=None
             Label values which are considered unfavorable.
             neg_label will only be used in uplift models.
             For uplift, user is to provide 2 label names e.g. [["c"], ["d"]] in unfav label. The first will be mapped to treatment rejected (TR) & second to control rejected (CR).
@@ -225,7 +225,7 @@ def check_label(y, pos_label, neg_label=None):
     y_bin : list
             Encoded labels.
 
-    pos_label2 : array
+    pos_label2 : list
             Label values which are considered favorable.
     """
     # uplift model

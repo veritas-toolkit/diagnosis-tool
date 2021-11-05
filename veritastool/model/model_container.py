@@ -13,13 +13,13 @@ class ModelContainer(object):
         """
         Parameters
         ----------
-        y_true : array of shape (n_samples,)
+        y_true : list, numpy.ndarray or pandas.Series
                 Ground truth target values.
 
-        p_var : list of size=k
-                List of privileged groups within the protected variables.
+        p_var : list
+                List of protected variables used for fairness analysis.
 
-        p_grp : dictionary of lists
+        p_grp : dict of lists
                 List of privileged groups within the protected variables.
 
         model_type : string
@@ -27,56 +27,62 @@ class ModelContainer(object):
 
                 Customer Marketing: "uplift" or "propensity" or "reject"
                 Credit Scoring: "credit"
-                Base Class: "default"
 
         Instance Attributes
         --------------------
         model_name : string, default="auto"
                 Used to name the model artifact json file in compile function.
 
-        y_pred : array of shape (n_samples,), default=None
+        y_pred : list, numpy.ndarray, pandas.Series or None, default=None
                 Predicted targets as returned by classifier.
 
-        y_prob : array of shape (n_samples, L), default=None
-                Predicted probabilities as returned by classifier. For uplift models, L = 4. Else, L = 1.
+        y_prob : list, numpy.ndarray, pandas.Series, pandas.DataFrame or None, default=None
+                Predicted probabilities as returned by classifier. 
+                For uplift models, L = 4. Else, L = 1 where dimensions are (n_samples, L)
                 y_prob column orders should be ["TR", "TN", "CR", "CN"] for uplift models.
 
-        y_train : array of shape (m_samples,), default=None
-                Ground truth for training data.
+        y_train : list, numpy.ndarray, pandas.Series or None, default=None
+                Ground truth for training data. 
+                If it is not given in correct format, Feature Importance LOO Analysis is to be skipped.
 
-        protected_features_cols: pandas Dataframe of shape (n_samples, k), default=None
+        protected_features_cols: pandas.DataFrame or None, default=None
                 This variable will be used for masking. If not provided, x_test will be used and x_test must be a pandas dataframe.
 
-        train_op_name : string, default = "fit"
+        train_op_name : str, default = "fit"
                 The method used by the model_object to train the model. By default a sklearn model is assumed.
 
-        predict_op_name : string, default = "predict"
+        predict_op_name : str, default = "predict"
                 The method used by the model_object to predict the labels or probabilities. By default a sklearn model is assumed.
                 For uplift models, this method should predict the probabilities and for non-uplift models it should predict the labels.
 
-        feature_imp : pandas Dataframe of shape (n_features,2), default=None
-                The feature importance computed on the model object fitted to x_train. Order of features must be the same as x_test & x_train.
-
-        sample_weight : array of shape (n_samples,), default=None
+        feature_imp : pandas.DataFrame or None, default=None
+                The feature importance computed on the model object fitted to x_train. 
+                Index:
+                    RangeIndex
+                Columns:
+                    Name: Feature, dtype: str      
+                    Name: Importance, dtype: float   
+                
+        sample_weight : list, numpy.ndarray or None, default=None
                 Used to normalize y_true & y_pred.
 
-        pos_label : array, default = [[1]]
+        pos_label : list of lists, default = [[1]]
                 Label values which are considered favorable.
                 For all model types except uplift, converts the favourable labels to 1 and others to 0.
                 For uplift, user is to provide 2 label names e.g. [["a"], ["b"]] in fav label. The first will be mapped to treatment responded (TR) & second to control responded (CR).
 
-        neg_label : array, default = None
+        neg_label : list of lists or None, default = None
                 Label values which are considered unfavorable.
                 neg_label will only be used in uplift models.
                 For uplift, user is to provide 2 label names e.g. [["c"], ["d"]] in unfav label. The first will be mapped to treatment rejected (TR) & second to control rejected (CR).
 
-        x_train : pandas Dataframe of shape (m_samples, n_features) or string
+        x_train : pandas.DataFrame, str or None, default = None
                 Training dataset. m_samples refers to number of rows in the training dataset. The string refers to the dataset path acceptable by the model (e.g. HDFS URI).
         
-        x_test : pandas Dataframe or array of shape (n_samples, n_features) or string
+        x_test : pandas.DataFrame, str or None, default = None
                 Testing dataset. The string refers to the dataset path acceptable by the model (e.g. HDFS URI).
 
-        model_object : Object
+        model_object : object
                 A blank model object used in the feature importance section for training and prediction.
 
         _input_validation_lookup : dictionary
@@ -85,7 +91,7 @@ class ModelContainer(object):
         err : object
                 VeritasError object to save errors
 
-        pos_label2 : array, default=None
+        pos_label2 : list, default=None
                 Encoded pos_label value
         """
         self.x_train = x_train
@@ -413,41 +419,48 @@ class ModelContainer(object):
 
         Parameters
         ---------------
-        y_true : array of shape (n_samples,)
+        y_true : numpy.ndarray
                 Ground truth target values.
 
-        model_object : Object
+        model_object : object
                 A blank model object used in the feature importance section for training and prediction.
 
-        y_pred : array of shape (n_samples,), default=None
+        y_pred : numpy.ndarray, default=None
                 Predicted targets as returned by classifier.
 
-        y_prob : array of shape (n_samples, L), default=None
-                Predicted probabilities as returned by classifier. For uplift models, L = 4. Else, L = 1.
+        y_prob : list, numpy.ndarray, pandas.Series, pandas.DataFrame or None, default=None
+                Predicted probabilities as returned by classifier. 
+                For uplift models, L = 4. Else, L = 1 where dimensions are (n_samples, L)
                 y_prob column orders should be ["TR", "TN", "CR", "CN"] for uplift models.
+                
+        y_train : list, numpy.ndarray, pandas.Series or None, default=None
+                Ground truth for training data. 
+                If it is not given in correct format, Feature Importance LOO Analysis is to be skipped.
 
-        y_train : array of shape (m_samples,), default=None
-                Ground truth for training data.
-
-        train_op_name : string, default = "fit"
+        train_op_name : str, default = "fit"
                 The method used by the model_object to train the model. By default a sklearn model is assumed.
 
-        predict_op_name : string, default = "predict"
+        predict_op_name : str, default = "predict"
                 The method used by the model_object to predict the labels or probabilities. By default a sklearn model is assumed.
                 For uplift models, this method should predict the probabilities and for non-uplift models it should predict the labels.
 
-        feature_imp : pandas Dataframe of shape (n_features,2), default=None
-                The feature importance computed on the model object fitted to x_train. Order of features must be the same as x_test & x_train.
+        feature_imp : pandas.DataFrame or None, default=None
+                The feature importance computed on the model object fitted to x_train. 
+                Index:
+                    RangeIndex
+                Columns:
+                    Name: Feature, dtype: str      
+                    Name: Importance, dtype: float   
 
-        sample_weight : array of shape (n_samples,), default=None
+        sample_weight : list, numpy.ndarray or None, default=None
                 Used to normalize y_true & y_pred.
 
-        pos_label : array, default = [[1]]
+        pos_label : list of lists, default = [[1]]
                 Label values which are considered favorable.
                 For all model types except uplift, converts the favourable labels to 1 and others to 0.
                 For uplift, user is to provide 2 label names e.g. [["a"], ["b"]] in fav label. The first will be mapped to treatment responded (TR) & second to control responded (CR).
 
-        neg_label : array, default = None
+        neg_label : list of lists or None, default = None
                 Label values which are considered unfavorable.
                 neg_label will only be used in uplift models.
                 For uplift, user is to provide 2 label names e.g. [["c"], ["d"]] in unfav label. The first will be mapped to treatment rejected (TR) & second to control rejected (CR).
@@ -460,4 +473,3 @@ class ModelContainer(object):
                  predict_op_name = predict_op_name, feature_imp=self.feature_imp, sample_weight=self.sample_weight, pos_label=pos_label, neg_label=neg_label)
         
         return clone_obj
-

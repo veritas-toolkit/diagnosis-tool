@@ -11,10 +11,10 @@ class ModelWrapper(object):
         model_obj : object, default=None
                 Model object
 
-        model_file : string, default=None
+        model_file : str, default=None
                 Path to the model file. e.g. "/home/model.pkl"
 
-        output_file : string, default=None
+        output_file : str, default=None
                 Path to which the prediction results will be written to in the form of a csv file. e.g. "/home/results.csv"
         """
         self.model_obj = model_obj
@@ -33,12 +33,13 @@ class ModelWrapper(object):
 
         Parameters
         -----------
-        x_train: pandas Dataframe of shape (m_samples, n_features) or string
-                Training dataset. m_samples refers to number of rows in the training dataset.
+        x_train: pandas.DataFrame or str
+                Training dataset. 
+                m_samples refers to number of rows in the training dataset where shape is (m_samples, n_features)
                 The string refers to the dataset path acceptable by the model (e.g. HDFS URI).
 
-        y_train : array of shape (m_samples,)
-                Ground truth for training data.
+        y_train : numpy.ndarray 
+                Ground truth for training data where length is m_samples
         """
         pass
 
@@ -58,8 +59,8 @@ class ModelWrapper(object):
 
         Parameters
         -----------
-        x_test : pandas Dataframe or array of shape (n_samples, n_features) or string
-                Testing dataset.
+        x_test : pandas.DataFrame or str
+                Testing dataset where shape is (n_samples, n_features)
                 The string refers to the dataset path acceptable by the model (e.g. HDFS URI).
         """
         pass
