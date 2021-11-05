@@ -1,12 +1,18 @@
 
 
 # Veritas Toolkit
+[![codecov](https://codecov.io/gh/mas-veritas2/veritastool/branch/main/graph/badge.svg?token=0J3QEBHBDU)](https://codecov.io/gh/mas-veritas2/veritastool)
+[![PyPI version](https://badge.fury.io/py/veritastool.svg)](https://badge.fury.io/py/veritastool) 
+[![Python 3.9](https://img.shields.io/badge/python-3.9-green)](https://www.python.org/downloads/release/python-395/) 
+[![Python 3.8](https://img.shields.io/badge/python-3.8-green)](https://www.python.org/downloads/release/python-385/) 
+[![Python 3.7](https://img.shields.io/badge/python-3.7-green)](https://www.python.org/downloads/release/python-375/) 
+[![GitHub license](https://img.shields.io/github/license/mas-veritas2/veritastool.svg)](https://github.com/mas-veritas2/veritastool/blob/master/license.txt)
+[![Python package](https://github.com/mas-veritas2/veritastool/actions/workflows/python-package.yml/badge.svg)](https://github.com/mas-veritas2/veritastool/actions/workflows/python-package.yml) 
 
-[![codecov](https://codecov.io/gh/mas-veritas/veritastool/branch/master/graph/badge.svg?token=N7PXYH7HHX)](https://codecov.io/gh/mas-veritas/veritastool) [![PyPI version](https://badge.fury.io/py/veritastool.svg)](https://badge.fury.io/py/veritastool) [![Python 3.9](https://img.shields.io/badge/python-3.9-blue)](https://www.python.org/downloads/release/python-390/) [![GitHub license](https://img.shields.io/github/license/mas-veritas/veritastool.svg)](https://github.com/mas-veritas/veritastool/blob/master/license.txt)
-[![Build Status](https://app.travis-ci.com/mas-veritas/veritastool.svg?branch=master)](https://app.travis-ci.com/mas-veritas/veritastool)
 
 
-<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas/veritastool/master/icon/mas-veritas-logo.png" width="200" height="240"></p>
+
+<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/main/icon/veritas_logo_new.png" ></p>
 
 
 The purpose of this toolkit is to facilitate the adoption of Veritas Methodology on Fairness Assessment and spur industry development. It will also
@@ -15,7 +21,7 @@ benefit customers by improving the fairness of financial services delivered by A
   
 ## Installation
 
-The easiest way to install veritastool is to download it from [`PyPI`](https://pypi.org/project/veritastool/). It's going to install the library itself and its prerequisites as well.
+The easiest way to install veritastool is to download it from [`PyPI`](https://pypi.org/project/veritastool/). It's going to install the library itself and its prerequisites as well. It is suggested to create virtual environment with requirements.txt file first.
 
 ```python
 pip install veritastool
@@ -29,11 +35,11 @@ test_function_cs()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas/veritastool/master/icon/test_evaluate_cs.png" width="800" height="100"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/master/icon/test_evaluate_cs.png" width="800" height="100"></p>
 
 ### Initialization ##
 
-You can now import the custom library that you would to use for diagnosis. In this example we will use the Credit Scoring custom library.
+You can now import the custom library that you would to use for diagnosis. In this example we will use the Credit Scoring custom library. 
 
 ```python
 from veritastool.model import ModelContainer
@@ -48,6 +54,7 @@ import pickle
 import numpy as np
 
 #Load Credit Scoring Test Data
+# NOTE: Assume current working directory is the root folder of the cloned veritastool repository
 file = "./veritastool/resources/data/credit_score_dict.pickle"
 input_file = open(file, "rb")
 cs = pickle.load(input_file)
@@ -91,7 +98,7 @@ cre_sco_obj.evaluate()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas/veritastool/master/icon/evaluate-default.png" width="800" height="800"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/master/icon/evaluate-default.png" width="800" height="800"></p>
 
 You can also toggle the widget to view your results in a interactive visualization format.
 
@@ -100,7 +107,7 @@ cre_sco_obj.evaluate(visualize = True)
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas/veritastool/master/icon/evaluate-widget.png" width="900" height="500"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/master/icon/evaluate_widget.JPG" width="900" height="500"></p>
 
 **Tradeoff**
 
@@ -111,7 +118,7 @@ cre_sco_obj.tradeoff()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas/veritastool/master/icon/tradeoff.png" width="700" height="600"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/master/icon/tradeoff.png" width="700" height="600"></p>
 
 ** Note: Replace {Balanced Accuracy} with the respective given metrics. 
 
@@ -124,7 +131,7 @@ cre_sco_obj.feature_importance()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas/veritastool/master/icon/feature-imp.png" width="1000" height="500"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/master/icon/feature-imp.png" width="1000" height="500"></p>
 
 ** Note: Replace {Balanced Accuracy} & {Equal Opportunity} with the respective given metrics. 
 
@@ -137,7 +144,7 @@ cre_sco_obj.compile()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas/veritastool/master/icon/compile.png" width="600" height="200"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/master/icon/compile.png" width="600" height="200"></p>
 
 **Model Artifact**
 
@@ -145,7 +152,7 @@ A JSON file that stores all the results from evaluate(), tradeoff() and feature_
 
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas/veritastool/master/icon/json-output.png" width="700" height="800"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/master/icon/json-output.png" width="700" height="800"></p>
 
 ## Examples
 
@@ -153,11 +160,12 @@ You may refer to our example notebooks below to see how the toolkit can be appli
 
 | Filename               | Description      | 
 | -----------------------| -------------    | 
-| [`CS_Demo.ipynb`](https://github.com/mas-veritas/veritastool/blob/master/veritastool/examples/CS_demo.ipynb)| Tutorial notebook to diagnose a credit scoring model for predicting customers' loan repayment.            | 
-| [`CM_Demo.ipynb`](https://github.com/mas-veritas/veritastool/blob/master/veritastool/examples/customer_marketing_example/CM_demo.ipynb)          | Tutorial notebook to diagnose a customer marketing uplift model for selecting existing customers for a marketing call to increase the sales of loan product.            | 
-| [`nonPythonModel_customMetric_demo.ipynb`](https://github.com/mas-veritas/veritastool/blob/master/veritastool/examples/nonPythonModel_customMetric_demo.ipynb)          | Tutorial notebook to diagnose a credit scoring model by LibSVM (non-Python) with custom metric.            | 
+| [`CS_Demo.ipynb`](https://github.com/mas-veritas2/veritastool/blob/master/veritastool/examples/CS_demo.ipynb)| Tutorial notebook to diagnose a credit scoring model for predicting customers' loan repayment.            | 
+| [`CM_Demo.ipynb`](https://github.com/mas-veritas2/veritastool/blob/master/veritastool/examples/customer_marketing_example/CM_demo.ipynb)          | Tutorial notebook to diagnose a customer marketing uplift model for selecting existing customers for a marketing call to increase the sales of loan product.            | 
+| [`nonPythonModel_customMetric_demo.ipynb`](https://github.com/mas-veritas2/veritastool/blob/master/veritastool/examples/nonPythonModel_customMetric_demo.ipynb)          | Tutorial notebook to diagnose a credit scoring model by LibSVM (non-Python) with custom metric.            | 
 
 ## License
 
-Veritas Toolkit is licensed under the Apache License, Version 2.0 - see [`LICENSE`](https://raw.githubusercontent.com/mas-veritas/veritastool/master/license.txt) for more details. 
+Veritas Toolkit is licensed under the Apache License, Version 2.0 - see [`LICENSE`](https://raw.githubusercontent.com/mas-veritas2/veritastool/master/license.txt) for more details. 
+
 
