@@ -6,13 +6,13 @@
 [![Python 3.9](https://img.shields.io/badge/python-3.9-green)](https://www.python.org/downloads/release/python-395/) 
 [![Python 3.8](https://img.shields.io/badge/python-3.8-green)](https://www.python.org/downloads/release/python-385/) 
 [![Python 3.7](https://img.shields.io/badge/python-3.7-green)](https://www.python.org/downloads/release/python-375/) 
-[![GitHub license](https://img.shields.io/github/license/mas-veritas2/veritastool.svg)](https://github.com/veritas-project/veritas-diagnosis-tool/blob/master/license.txt)
+[![GitHub license](https://img.shields.io/github/license/mas-veritas2/veritastool.svg)](https://github.com/veritas-toolkit/diagnosis-tool/blob/master/license.txt)
 [![Python package](https://github.com/mas-veritas2/veritastool/actions/workflows/python-package.yml/badge.svg)](https://github.com/mas-veritas2/veritastool/actions/workflows/python-package.yml) 
 
 
 
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-project/veritas-diagnosis-tool/master/icon/veritas_logo_new.png" ></p>
+<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/veritas_logo_new.png" ></p>
 
 
 The purpose of this toolkit is to facilitate the adoption of Veritas Methodology on Fairness Assessment and spur industry development. It will also
@@ -35,7 +35,7 @@ test_function_cs()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-project/veritas-diagnosis-tool/master/icon/test_evaluate_cs.png" width="800" height="100"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/test_evaluate_cs.png" width="800" height="100"></p>
 
 ### Initialization ##
 
@@ -166,6 +166,6 @@ You may refer to our example notebooks below to see how the toolkit can be appli
 
 ## License
 
-Veritas Toolkit is licensed under the Apache License, Version 2.0 - see [`LICENSE`](https://raw.githubusercontent.com/veritas-project/veritas-diagnosis-tool/master/license.txt) for more details. 
+Veritas Toolkit is licensed under the Apache License, Version 2.0 - see [`LICENSE`](https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/license.txt) for more details. 
 
 
