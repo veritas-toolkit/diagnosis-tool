@@ -12,7 +12,7 @@
 
 
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/veritas_logo_new.png" ></p>
+<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/veritas_logo_new.png" ></p>
 
 
 The purpose of this toolkit is to facilitate the adoption of Veritas Methodology on Fairness Assessment and spur industry development. It will also
@@ -98,7 +98,7 @@ cre_sco_obj.evaluate()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/evaluate-default.png" width="800" height="800"></p>
+<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/evaluate-default.png" width="800" height="800"></p>
 
 You can also toggle the widget to view your results in a interactive visualization format.
 
@@ -107,7 +107,7 @@ cre_sco_obj.evaluate(visualize = True)
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/evaluate_widget.JPG" width="900" height="500"></p>
+<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/evaluate_widget.JPG" width="900" height="500"></p>
 
 **Tradeoff**
 
@@ -118,7 +118,7 @@ cre_sco_obj.tradeoff()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/tradeoff.png" width="700" height="600"></p>
+<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/tradeoff.png" width="700" height="600"></p>
 
 ** Note: Replace {Balanced Accuracy} with the respective given metrics. 
 
@@ -131,7 +131,7 @@ cre_sco_obj.feature_importance()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/feature-imp.png" width="1000" height="500"></p>
+<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/feature-imp.png" width="1000" height="500"></p>
 
 ** Note: Replace {Balanced Accuracy} & {Equal Opportunity} with the respective given metrics. 
 
@@ -144,7 +144,7 @@ cre_sco_obj.compile()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/compile.png" width="600" height="200"></p>
+<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/compile.png" width="600" height="200"></p>
 
 **Model Artifact**
 
@@ -152,7 +152,7 @@ A JSON file that stores all the results from evaluate(), tradeoff() and feature_
 
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/json-output.png" width="700" height="800"></p>
+<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/json-output.png" width="700" height="800"></p>
 
 ## Examples
 
@@ -166,6 +166,6 @@ You may refer to our example notebooks below to see how the toolkit can be appli
 
 ## License
 
-Veritas Toolkit is licensed under the Apache License, Version 2.0 - see [`LICENSE`](https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/license.txt) for more details. 
+Veritas Toolkit is licensed under the Apache License, Version 2.0 - see [`LICENSE`](https://github.com/veritas-toolkit/diagnosis-tool/blob/master/license.txt) for more details. 
 
 
