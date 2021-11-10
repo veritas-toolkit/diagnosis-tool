@@ -35,7 +35,7 @@ test_function_cs()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/veritas-toolkit/diagnosis-tool/master/icon/test_evaluate_cs.png" width="800" height="100"></p>
+<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/test_evaluate_cs.png" width="800" height="100"></p>
 
 ### Initialization ##
 
