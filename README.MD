@@ -107,7 +107,7 @@ cre_sco_obj.evaluate(visualize = True)
 ```
 Output:
 
-<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/evaluate_widget.JPG" width="900" height="500"></p>
+<p align="center"><img src="https://github.com/veritas-toolkit/diagnosis-tool/blob/master/icon/evaluate_widget.jpg" width="900" height="500"></p>
 
 **Tradeoff**
 
