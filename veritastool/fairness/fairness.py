@@ -639,7 +639,6 @@ class Fairness:
         baseline_perf_values = use_case_object.perf_metric_obj.result.get("perf_metric_values").get(use_case_object.perf_metric_name)[0]
         baseline_fair_values = use_case_object.fair_metric_obj.result.get(p_variable).get("fair_metric_values").get(use_case_object.fair_metric_name)[0]
         baseline_fairness_conclusion = use_case_object.fair_conclusion.get(p_variable).get("fairness_conclusion")
-        baseline_values = [baseline_perf_values, baseline_fair_values, baseline_fairness_conclusion]
         # empty y_pred_new list to be appended
         y_pred_new = []
         loo_result = {}
@@ -700,7 +699,7 @@ class Fairness:
         #run performance and fairness evaluation only for primary performance and fair metric
         loo_perf_value = use_case_object.perf_metric_obj.translate_metric(use_case_object.perf_metric_name, y_pred_new=y_pred_new)
         ##to find deltas (removed - baseline) for primary perf metric 
-        deltas_perf = loo_perf_value - baseline_values[0]
+        deltas_perf = loo_perf_value - baseline_perf_values 
 
         # to iterate through each protected variable for each protected variable that is being dropped
         for j in use_case_object.model_params[0].p_var:
@@ -710,11 +709,13 @@ class Fairness:
             loo_fair_value, loo_priv_m_v = use_case_object.fair_metric_obj.translate_metric(use_case_object.fair_metric_name, y_pred_new=y_pred_new)[:2]
 
             ##to find deltas (removed - baseline) for each protected variable in iteration for primary fair metric
-            deltas_fair = loo_fair_value - baseline_values[1]
+            baseline_fair_values_j = use_case_object.fair_metric_obj.result.get(j).get("fair_metric_values").get(use_case_object.fair_metric_name)[0]
+            baseline_fairness_conclusion_j = use_case_object.fair_conclusion.get(j).get("fairness_conclusion")
+            deltas_fair = loo_fair_value - baseline_fair_values_j
 
             ##fairness fair_conclusion
-            loo_fairness_conclusion = use_case_object._fair_conclude(j, priv_m_v=loo_priv_m_v, value=loo_fair_value)
-            delta_conclusion = baseline_values[2] + " to " + loo_fairness_conclusion["fairness_conclusion"]
+            loo_fairness_conclusion = use_case_object._fair_conclude(j, priv_m_v=loo_priv_m_v, value=loo_fair_value)            
+            delta_conclusion = baseline_fairness_conclusion_j + " to " + loo_fairness_conclusion["fairness_conclusion"]
 
             ##suggestion
             #if metric used is parity based, means it will either be more than 0 or less than 0. So set n = 0 to see the difference.
@@ -724,7 +725,7 @@ class Fairness:
             else:
                 n = 1
 
-            if (n - baseline_fair_values) * (deltas_fair) > 0:
+            if abs(loo_fair_value  - n) < abs(baseline_fair_values_j - n):  
                 if PerformanceMetrics.map_perf_metric_to_group.get(use_case_object.perf_metric_name)[1] == "regression" :
                     if deltas_perf <= 0:
                         suggestion = 'exclude'
@@ -736,7 +737,7 @@ class Fairness:
                     else:
                         suggestion = 'examine further'                    
                 delta_conclusion += " (+)"
-            elif (n - baseline_fair_values) * (deltas_fair) < 0:
+            elif abs(loo_fair_value  - n) > abs(baseline_fair_values_j - n):  
                 if PerformanceMetrics.map_perf_metric_to_group.get(use_case_object.perf_metric_name)[1] == "regression" :
                     if deltas_perf >= 0:
                         suggestion = 'include'
@@ -1383,7 +1384,9 @@ class Fairness:
                     fair5_1_1.value = html_fair_ci.format('\xB1 ' + "{:.{decimal_pts}f}".format(
                         self.fair_metric_obj.result.get(chosen_p_v).get('fair_metric_values').get(self.fair_metric_name)[2],
                         decimal_pts=self.decimals))
-    
+
+                    fair5_2.value = html_fair_bold.format("{:.{decimal_pts}f}".format(self.fair_conclusion.get(chosen_p_v).get("threshold"), decimal_pts=self.decimals))
+
                     plot_output.clear_output()
                     for metric in NewMetric.__subclasses__():
                         if metric.metric_name in result_fairness[protected_feature]['fair_metric_values'].keys():
