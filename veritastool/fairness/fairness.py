@@ -639,6 +639,7 @@ class Fairness:
         baseline_perf_values = use_case_object.perf_metric_obj.result.get("perf_metric_values").get(use_case_object.perf_metric_name)[0]
         baseline_fair_values = use_case_object.fair_metric_obj.result.get(p_variable).get("fair_metric_values").get(use_case_object.fair_metric_name)[0]
         baseline_fairness_conclusion = use_case_object.fair_conclusion.get(p_variable).get("fairness_conclusion")
+        #toDel#baseline_values = [baseline_perf_values, baseline_fair_values, baseline_fairness_conclusion]
         # empty y_pred_new list to be appended
         y_pred_new = []
         loo_result = {}
@@ -699,7 +700,7 @@ class Fairness:
         #run performance and fairness evaluation only for primary performance and fair metric
         loo_perf_value = use_case_object.perf_metric_obj.translate_metric(use_case_object.perf_metric_name, y_pred_new=y_pred_new)
         ##to find deltas (removed - baseline) for primary perf metric 
-        deltas_perf = loo_perf_value - baseline_perf_values 
+        deltas_perf = loo_perf_value - baseline_perf_values #toDel#baseline_values[0]
 
         # to iterate through each protected variable for each protected variable that is being dropped
         for j in use_case_object.model_params[0].p_var:
@@ -709,12 +710,14 @@ class Fairness:
             loo_fair_value, loo_priv_m_v = use_case_object.fair_metric_obj.translate_metric(use_case_object.fair_metric_name, y_pred_new=y_pred_new)[:2]
 
             ##to find deltas (removed - baseline) for each protected variable in iteration for primary fair metric
+            #toDel#deltas_fair = loo_fair_value - baseline_values[1]
             baseline_fair_values_j = use_case_object.fair_metric_obj.result.get(j).get("fair_metric_values").get(use_case_object.fair_metric_name)[0]
             baseline_fairness_conclusion_j = use_case_object.fair_conclusion.get(j).get("fairness_conclusion")
             deltas_fair = loo_fair_value - baseline_fair_values_j
 
             ##fairness fair_conclusion
-            loo_fairness_conclusion = use_case_object._fair_conclude(j, priv_m_v=loo_priv_m_v, value=loo_fair_value)            
+            loo_fairness_conclusion = use_case_object._fair_conclude(j, priv_m_v=loo_priv_m_v, value=loo_fair_value)
+            #toDel#delta_conclusion = baseline_values[2] + " to " + loo_fairness_conclusion["fairness_conclusion"]
             delta_conclusion = baseline_fairness_conclusion_j + " to " + loo_fairness_conclusion["fairness_conclusion"]
 
             ##suggestion
@@ -1859,4 +1862,3 @@ class NpEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
-

@@ -115,10 +115,10 @@ class CreditScoring(Fairness):
         self.err = VeritasError()
 
         self._model_type_input()
-
+        
         self.fair_metric_name = fair_metric_name
         self.fair_metric_input = fair_metric_name
-
+        
         self._select_fairness_metric_name()
         self.check_perf_metric_name()
         self.check_fair_metric_name()
@@ -163,7 +163,7 @@ class CreditScoring(Fairness):
         if self.spl_params['base_default_rate'] is not None and self.spl_params['num_applicants'] is not None:
             for var in self.model_params[0].p_var:
                 self._rejection_inference_flag[var] = True
-        
+
         self._check_input()
         self._check_special_params()
 
@@ -359,7 +359,7 @@ class CreditScoring(Fairness):
                         self._rejection_inference_flag[i] = False 
                         self.err.push('value_error_compare', var_name_a="Total number of applicants",
                                         var_name_b="total number of approvals", function_name="_check_special_params")    
-        
+
         #check if spl params provided are realistic, otherwise throw exception
         if self.model_params[0].y_pred is not None:
             tn, fp, fn, tp = self._get_confusion_matrix(self.model_params[0].y_true, self.model_params[0].y_pred, self.model_params[0].sample_weight)
@@ -473,3 +473,67 @@ class CreditScoring(Fairness):
                 return [None] * 4  
             else :
                 return [None] * 8
+            
+    def _get_confusion_matrix_optimized(self, y_true, y_pred, sample_weight, curr_p_var = None, feature_mask = None):
+        """
+        Compute confusion matrix
+
+        Parameters
+        ----------
+        y_true : numpy.ndarray
+                Ground truth target values.
+
+        y_pred : numpy.ndarray
+                Copy of predicted targets as returned by classifier.
+                
+        sample_weight : numpy.ndarray
+                Used to normalize y_true & y_pred.
+                
+        curr_p_var : string, default=None
+                Current protected variable
+
+        feature_mask : dict of list, default = None
+                Stores the mask array for every protected variable applied on the x_test dataset.
+
+        Returns
+        -------
+        Confusion matrix metrics based on privileged and unprivileged groups or for the entire dataset
+        """ 
+        nan_array = np.array([np.nan]*y_true.shape[0]).reshape(-1,1)
+        
+        if self._model_type_to_metric_lookup[self.model_params[0].model_type][0] == "classification" :
+
+            correct = (y_true==y_pred)*1
+            incorrect = 1-correct
+
+            if curr_p_var is None:
+                if y_pred is None:
+                    return nan_array, nan_array, nan_array, nan_array
+                else:
+                    tp = np.sum(correct*y_true, 2)
+                    fp = np.sum(incorrect*(1-y_true), 2)
+                    tn = np.sum(correct*(1-y_true), 2)
+                    fn = np.sum(incorrect*y_true, 2)
+                    return tp, fp, tn, fn
+
+            else:
+                if y_pred is None:
+                    return nan_array, nan_array, nan_array, nan_array, nan_array, nan_array, nan_array, nan_array
+                else:
+                    mask = feature_mask[curr_p_var] # 1=priviledged, 0=otherwise
+                    # priviledged group
+                    tp_p = np.sum(correct*y_true*mask, 2)
+                    fp_p = np.sum(incorrect*(1-y_true)*mask, 2)
+                    tn_p = np.sum(correct*(1-y_true)*mask, 2)
+                    fn_p = np.sum(incorrect*y_true*mask, 2)
+                    # unpriviledged group
+                    tp_u = np.sum(correct*y_true*(1-mask), 2)
+                    fp_u = np.sum(incorrect*(1-y_true)*(1-mask), 2)
+                    tn_u = np.sum(correct*(1-y_true)*(1-mask), 2)
+                    fn_u = np.sum(incorrect*y_true*(1-mask), 2)
+                    return tp_p, fp_p, tn_p, fn_p, tp_u, fp_u, tn_u, fn_u
+        else:
+            if curr_p_var is None:
+                return nan_array, nan_array, nan_array, nan_array
+            else:
+                return nan_array, nan_array, nan_array, nan_array, nan_array, nan_array, nan_array, nan_array
