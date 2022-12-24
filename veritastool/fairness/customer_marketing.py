@@ -6,6 +6,8 @@ from ..metrics.performance_metrics import PerformanceMetrics
 from ..metrics.fairness_metrics import FairnessMetrics
 from ..config.constants import Constants
 from ..util.errors import *
+import mlflow
+import datetime
 
 class CustomerMarketing(Fairness):
     """
@@ -22,7 +24,10 @@ class CustomerMarketing(Fairness):
                                    "rejection": ("classification", 2, 1),
                                    "propensity":("classification", 2, 1)}
 
-    def __init__(self, model_params, fair_threshold, perf_metric_name =  "balanced_acc", fair_metric_name = "auto",  fair_concern = "eligible", fair_priority = "benefit", fair_impact = "normal", treatment_cost = None, revenue = None, fairness_metric_value_input = {}, proportion_of_interpolation_fitting = 1.0):
+    def __init__(self, model_params, fair_threshold, perf_metric_name =  "balanced_acc", fair_metric_name = "auto",  
+                fair_concern = "eligible", fair_priority = "benefit", fair_impact = "normal", treatment_cost = None, 
+                revenue = None, fairness_metric_value_input = {}, proportion_of_interpolation_fitting = 1.0,
+                mlflow_uri = None, mlflow_user = None, mlflow_desc = None):
         """
         Parameters
         ----------
@@ -105,6 +110,17 @@ class CustomerMarketing(Fairness):
                 Contains the probabilities of the treatment and control groups for both rejection and acquiring
         """
         super().__init__(model_params)
+        self.mlflow_uri = mlflow_uri
+        if self.mlflow_uri:
+            if mlflow.active_run() is None:            
+                mlflow.set_tracking_uri(self.mlflow_uri)
+                run_date = datetime.datetime.today().strftime('%Y%m%d_%H%M')
+                mlflow.log_params({"run_date": str(run_date)})
+                mlflow.set_tags({"run_date": str(run_date)})
+                if mlflow_user is not None:
+                    mlflow.set_tags({'mlflow.user': str(mlflow_user)})
+                if mlflow_desc is not None:
+                    mlflow.set_tags({'mlflow.note.content': str(mlflow_desc)})
 
         self.fair_metric_name = fair_metric_name
         self.fair_metric_input = fair_metric_name
