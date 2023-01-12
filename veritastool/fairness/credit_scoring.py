@@ -505,10 +505,18 @@ class CreditScoring(Fairness):
 
             correct = (y_true==y_pred)*1
             incorrect = 1-correct
+            rejection_inference_filter = {k: v for k, v in self._rejection_inference_flag.items() if v == True}
 
             if curr_p_var is None:
                 if y_pred is None:
                     return nan_array, nan_array, nan_array, nan_array
+                elif len(rejection_inference_filter) > 0 :
+                    tp = np.sum(correct*y_true, 2)
+                    fp = np.sum(incorrect*(1-y_true), 2)
+                    M = self.spl_params['num_applicants'][list(rejection_inference_filter.keys())[0]][0] + self.spl_params['num_applicants'][list(rejection_inference_filter.keys())[0]][1]
+                    fn = M * (1-self.common_base_default_rate) - tp
+                    tn = M * (self.common_base_default_rate) - fp
+                    return tp, fp, tn, fn
                 else:
                     tp = np.sum(correct*y_true, 2)
                     fp = np.sum(incorrect*(1-y_true), 2)
@@ -531,7 +539,14 @@ class CreditScoring(Fairness):
                     fp_u = np.sum(incorrect*(1-y_true)*(1-mask), 2)
                     tn_u = np.sum(correct*(1-y_true)*(1-mask), 2)
                     fn_u = np.sum(incorrect*y_true*(1-mask), 2)
-                    return tp_p, fp_p, tn_p, fn_p, tp_u, fp_u, tn_u, fn_u
+                    if self._rejection_inference_flag[curr_p_var] == True :
+                        fn_p = self.spl_params['num_applicants'][curr_p_var][0] * (1-self.spl_params['base_default_rate'][curr_p_var][0]) - tp_p
+                        tn_p = self.spl_params['num_applicants'][curr_p_var][0] * self.spl_params['base_default_rate'][curr_p_var][0] - fp_p
+                        fn_u= self.spl_params['num_applicants'][curr_p_var][1] * (1-self.spl_params['base_default_rate'][curr_p_var][1]) - tp_u
+                        tn_u = self.spl_params['num_applicants'][curr_p_var][1] * self.spl_params['base_default_rate'][curr_p_var][1] - fp_u
+                        return tp_p, fp_p, tn_p, fn_p, tp_u, fp_u, tn_u, fn_u
+                    else:
+                        return tp_p, fp_p, tn_p, fn_p, tp_u, fp_u, tn_u, fn_u
         else:
             if curr_p_var is None:
                 return nan_array, nan_array, nan_array, nan_array
