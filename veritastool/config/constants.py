@@ -53,11 +53,26 @@ class Constants:
         classify_max_threshold: float
                 Tradeoff maximum threshold
 
+        correlation_threshold_low : float
+                Correlation threshold minimum value
+
+        correlation_threshold_high : float
+                Correlation threshold maximum value
+
         k : int
                 Number of samples to calculate confidence interval
 
         decimals : int
                 Number of decimal places for values to be rounded off
+
+        correlation_bins : int
+                Number of bins for interval variables used for Phi_K correlation
+
+        permutation_additional : float
+                % of additional features to be included in permutation plot
+
+        min_samples_per_label : int
+                Minimum number of samples expected for each label in a feature.
         """
         import configparser
         file = join(dirname(__file__), 'config.ini')
@@ -78,5 +93,10 @@ class Constants:
         self.uplift_max_threshold = config.getfloat('threshold', 'uplift_max_threshold')
         self.classify_min_threshold = config.getfloat('threshold', 'classify_min_threshold')
         self.classify_max_threshold = config.getfloat('threshold', 'classify_max_threshold')
+        self.correlation_threshold_low = config.getfloat('threshold', 'correlation_threshold_low')
+        self.correlation_threshold_high  = config.getfloat('threshold', 'correlation_threshold_high')
         self.k = config.getint('default', 'k')
         self.decimals = config.getint('default', 'decimals')
+        self.correlation_bins  = config.getint('default', 'correlation_bins')
+        self.permutation_additional = config.getfloat('default','permutation_additional')
+        self.min_samples_per_label = config.getint('default','min_samples_per_label')

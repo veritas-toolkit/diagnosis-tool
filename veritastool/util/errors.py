@@ -50,6 +50,7 @@ class VeritasError():
         **kwargs : dict
                 Various arguments for the error messages        
         """
+        
         if error_type == 'value_error':
             var_name = kwargs['var_name']
             expected = kwargs['expected']
@@ -104,7 +105,7 @@ class VeritasError():
         msgs = ''
         if len(self.queue) > 0:
             for i in self.queue:
-                msgs += "[{}]: {} at {}()\n".format(i[0], i[1], i[2])
+                msgs += "[{}]: {} at {}()\n".format(i[0], i[1], i[2])                
             self.queue = list()
             raise MyError(msgs)
 
