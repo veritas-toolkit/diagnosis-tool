@@ -15,7 +15,7 @@
 
 
 The purpose of this toolkit is to facilitate the adoption of Veritas Methodology on Fairness & Transparency Assessment and spur industry development. It will also
-benefit customers by improving the fairness and transparency of financial services delivered by AIDA systems.
+benefit customers by improving the fairness and transparency of financial services delivered by AIDA systems. 
 
   
 ## Installation
