@@ -1068,13 +1068,13 @@ class FairnessMetrics:
             tpr_u = tp_u / (tp_u + fn_u)
             fpr_p = fp_p / (fp_p + tn_p)
             fpr_u = fp_u / (fp_u + tn_u)
-            return ((((tpr_u + fpr_u) / (tpr_p + fpr_p))/2)[0][0], ((tpr_p + fpr_p)/2)[0][0])
+            return (((tpr_u + fpr_u) / (tpr_p + fpr_p))[0][0], ((tpr_p + fpr_p)/2)[0][0])
         else:
             tpr_p = self.tp_ps / (self.tp_ps + self.fn_ps)
             tpr_u = self.tp_us / (self.tp_us + self.fn_us)
             fpr_p = self.fp_ps / (self.fp_ps + self.tn_ps)
             fpr_u = self.fp_us / (self.fp_us + self.tn_us)
-            return list(map(tuple, np.stack((((tpr_u + fpr_u) / (tpr_p + fpr_p))/2, (tpr_p + fpr_p)/2), axis=1).reshape(-1, 2).tolist()))
+            return list(map(tuple, np.stack(((tpr_u + fpr_u) / (tpr_p + fpr_p), (tpr_p + fpr_p)/2), axis=1).reshape(-1, 2).tolist()))
 
     def _compute_negative_equalized_odds(self, **kwargs):
         """
@@ -1128,13 +1128,13 @@ class FairnessMetrics:
             tnr_u = tn_u / (tn_u + fp_u)
             fnr_p = fn_p / (fn_p + tp_p)
             fnr_u = fn_u / (fn_u + tp_u)
-            return ((((tnr_u + fnr_u) / (tnr_p + fnr_p)) / 2)[0][0], ((tnr_p + fnr_p) / 2)[0][0])
+            return (((tnr_u + fnr_u) / (tnr_p + fnr_p))[0][0], ((tnr_p + fnr_p) / 2)[0][0])
         else:
             tnr_p = self.tn_ps / (self.tn_ps + self.fp_ps)
             tnr_u = self.tn_us / (self.tn_us + self.fp_us)
             fnr_p = self.fn_ps / (self.fn_ps + self.tp_ps)
             fnr_u = self.fn_us / (self.fn_us + self.tp_us)
-            return list(map(tuple, np.stack((((tnr_u + fnr_u) / (tnr_p + fnr_p)) / 2, (tnr_p + fnr_p) / 2), axis=1).reshape(-1, 2).tolist()))
+            return list(map(tuple, np.stack(((tnr_u + fnr_u) / (tnr_p + fnr_p), (tnr_p + fnr_p) / 2), axis=1).reshape(-1, 2).tolist()))
 
     def _compute_rmse_parity(self, **kwargs):
         """
@@ -1769,13 +1769,13 @@ class FairnessMetrics:
             ppv_u = tp_u / (tp_u + fp_u)
             for_p = fn_p / (tn_p + fn_p)
             for_u = fn_u / (tn_u + fn_u)
-            return ((((ppv_u + for_u) / (ppv_p + for_p)) / 2)[0][0], ((ppv_p + for_p) / 2)[0][0])
+            return (((ppv_u + for_u) / (ppv_p + for_p))[0][0], ((ppv_p + for_p) / 2)[0][0])
         else:
             ppv_p = self.tp_ps / (self.tp_ps + self.fp_ps)
             ppv_u = self.tp_us / (self.tp_us + self.fp_us)
             for_p = self.fn_ps / (self.tn_ps + self.fn_ps)
             for_u = self.fn_us / (self.tn_us + self.fn_us)
-            return list(map(tuple, np.stack((((ppv_u + for_u) / (ppv_p + for_p)) / 2, (ppv_p + for_p) / 2), axis=1).reshape(-1, 2).tolist()))
+            return list(map(tuple, np.stack(((ppv_u + for_u) / (ppv_p + for_p), (ppv_p + for_p) / 2), axis=1).reshape(-1, 2).tolist()))
 
     def _compute_mi_independence(self, **kwargs) :
         """
