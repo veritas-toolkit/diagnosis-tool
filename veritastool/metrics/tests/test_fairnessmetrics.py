@@ -487,7 +487,7 @@ def test_multi_class_difference(multi_class_setup):
     # Check result dict is not empty
     assert bool(clf_obj.fair_metric_obj.result)
 
-    expected = -0.12032418952618457
+    expected = 0.0
     result = clf_obj.fair_metric_obj.result['isforeign']['fair_metric_values']['demographic_parity'][0]
     assert round(result, 3) == round(expected, 3)
 
@@ -509,7 +509,7 @@ def test_multi_class_ratio(multi_class_setup):
     # Check result dict is not empty
     assert bool(clf_obj.fair_metric_obj.result)
 
-    expected = 1.481
+    expected = 1.00
     result = clf_obj.fair_metric_obj.result['isforeign']['fair_metric_values']['disparate_impact'][0]
     assert round(result, 3) == round(expected, 3)
 

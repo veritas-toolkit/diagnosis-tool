@@ -448,7 +448,7 @@ class FairnessMetrics:
                     metric_obj.tp_us += tp_us
                     metric_obj.fp_us += fp_us
                     metric_obj.tn_us += tn_us
-                    metric_obj.tp_us += tp_us
+                    metric_obj.fn_us += fn_us
 
             else:
                 
@@ -1161,8 +1161,8 @@ class FairnessMetrics:
         y_pred = y_pred[maskFilter]
         
         if self.sample_weight[0] is not None: 
-            sample_weight_p = np.array(self.sample_weight[0])[mask]
-            sample_weight_u = np.array(self.sample_weight[0])[~mask]
+            sample_weight_p = np.array(self.sample_weight[0][maskFilter])[mask]
+            sample_weight_u = np.array(self.sample_weight[0][maskFilter])[~mask]
         else:
             sample_weight_p = None
             sample_weight_u = None
@@ -1196,8 +1196,8 @@ class FairnessMetrics:
         y_pred = y_pred[maskFilter]
         
         if self.sample_weight[0] is not None: 
-            sample_weight_p = np.array(self.sample_weight[0])[mask]
-            sample_weight_u = np.array(self.sample_weight[0])[~mask]
+            sample_weight_p = np.array(self.sample_weight[0][maskFilter])[mask]
+            sample_weight_u = np.array(self.sample_weight[0][maskFilter])[~mask]
         else:
             sample_weight_p = None
             sample_weight_u = None
@@ -1231,8 +1231,8 @@ class FairnessMetrics:
         y_pred = y_pred[maskFilter]
             
         if self.sample_weight[0] is not None: 
-            sample_weight_p = np.array(self.sample_weight[0])[mask]
-            sample_weight_u = np.array(self.sample_weight[0])[~mask]
+            sample_weight_p = np.array(self.sample_weight[0][maskFilter])[mask]
+            sample_weight_u = np.array(self.sample_weight[0][maskFilter])[~mask]
         else:
             sample_weight_p = None
             sample_weight_u = None
@@ -1267,8 +1267,8 @@ class FairnessMetrics:
         y_pred = y_pred[maskFilter]
             
         if self.sample_weight[0] is not None: 
-            sample_weight_p = np.array(self.sample_weight[0])[mask]
-            sample_weight_u = np.array(self.sample_weight[0])[~mask]
+            sample_weight_p = np.array(self.sample_weight[0][maskFilter])[mask]
+            sample_weight_u = np.array(self.sample_weight[0][maskFilter])[~mask]
         else:
             sample_weight_p = None
             sample_weight_u = None
@@ -1301,9 +1301,16 @@ class FairnessMetrics:
             y_pred=kwargs['y_pred_new'][0]
         y_true = y_true[maskFilter]
         y_pred = y_pred[maskFilter]
+        
+        if self.sample_weight[0] is not None: 
+            sample_weight_p = np.array(self.sample_weight[0][maskFilter])[mask]
+            sample_weight_u = np.array(self.sample_weight[0][maskFilter])[~mask]
+        else:
+            sample_weight_p = np.ones(y_true.shape)[mask]
+            sample_weight_u = np.ones(y_true.shape)[~mask]
     
-        wape_p = np.sum(np.absolute(np.subtract(y_true[mask], y_pred[mask])))/ np.sum(y_true[mask])
-        wape_u = np.sum(np.absolute(np.subtract(y_true[~mask], y_pred[~mask])))/ np.sum(y_true[~mask])
+        wape_p = np.sum(np.absolute(np.subtract(y_true[mask], y_pred[mask]))*sample_weight_p)/ np.sum(np.absolute(y_true[mask])*sample_weight_p)
+        wape_u = np.sum(np.absolute(np.subtract(y_true[~mask], y_pred[~mask]))*sample_weight_u)/ np.sum(np.absolute(y_true[~mask])*sample_weight_u)
             
         return (wape_p - wape_u, wape_p)
 
@@ -1330,9 +1337,16 @@ class FairnessMetrics:
             y_pred=kwargs['y_pred_new'][0]
         y_true = y_true[maskFilter]
         y_pred = y_pred[maskFilter]
+
+        if self.sample_weight[0] is not None: 
+            sample_weight_p = np.array(self.sample_weight[0][maskFilter])[mask]
+            sample_weight_u = np.array(self.sample_weight[0][maskFilter])[~mask]
+        else:
+            sample_weight_p = np.ones(y_true.shape)[mask]
+            sample_weight_u = np.ones(y_true.shape)[~mask]
     
-        wape_p = np.sum(np.absolute(np.subtract(y_true[mask], y_pred[mask])))/ np.sum(y_true[mask])
-        wape_u = np.sum(np.absolute(np.subtract(y_true[~mask], y_pred[~mask])))/ np.sum(y_true[~mask])
+        wape_p = np.sum(np.absolute(np.subtract(y_true[mask], y_pred[mask]))*sample_weight_p)/ np.sum(np.absolute(y_true[mask])*sample_weight_p)
+        wape_u = np.sum(np.absolute(np.subtract(y_true[~mask], y_pred[~mask]))*sample_weight_u)/ np.sum(np.absolute(y_true[~mask])*sample_weight_u)
             
         return (wape_p/wape_u, wape_p)
 
