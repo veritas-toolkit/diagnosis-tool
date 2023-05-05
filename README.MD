@@ -97,7 +97,7 @@ cre_sco_obj.evaluate()
 ```
 Output:
 
-<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/master/icon/evaluate_2.png" width="608" height="596"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/mas-veritas2/veritastool/master/icon/evaulate_3.png" width="608" height="700"></p>
 
 You can also toggle the widget to view your results in a interactive visualization format.
 
