@@ -2,8 +2,6 @@ import numpy as np
 import pandas as pd
 import datetime
 import json
-import mlflow
-import zipfile
 from ..util.utility import *
 from ..metrics.fairness_metrics import FairnessMetrics
 from ..metrics.performance_metrics import PerformanceMetrics
@@ -187,11 +185,6 @@ class Fairness:
         #to trigger evaluate printout
         if output == True:
             self._print_evaluate()
-        # save any generated artifacts to mlflow
-        if self.mlflow_uri:
-            self._track('evaluate')
-
-    
 
     def _fair_conclude(self, protected_feature_name, **kwargs):
         """
@@ -453,153 +446,6 @@ class Fairness:
         #run function to generate json model artifact file after all API functions have ran 
         self._generate_model_artifact()
 
-        if self.mlflow_uri:
-            with zipfile.ZipFile(self.artifact_filename+'.zip', 'w') as out:
-                out.write(self.artifact_filename)
-            mlflow.log_artifact(self.artifact_filename+'.zip', f'for_assessment_toolkit')
-
-
-    def _track(self, to_track):
-        """
-        Logs the outputs from evaluate(), tradeoff(), and feature_importance() if the user calls them.
-
-        Parameters
-        -----------
-        to_track : string
-            toggles which parameters to log, depending on the function called by the user.
-
-        Returns
-        ----------
-        Logs the outputs to mlflow.
-        """
-        if self.mlflow_uri is None:
-            return
-
-
-        # 1) save model name
-        model_name = (self.model_params[0].model_name).replace(" ","_") 
-        mlflow.set_tags({"model_name": model_name})
-
-        
-        # 2) track parameters
-        fairness_init = {}
-        fairness_init["fair_metric_name"] = FairnessMetrics.map_fair_metric_to_group.get(self.fair_metric_name)[0] 
-        fairness_init["perf_metric_name"] = PerformanceMetrics.map_perf_metric_to_group.get(self.perf_metric_name)[0] 
-        fairness_init["protected_features"] = self.model_params[0].p_var  
-        if FairnessMetrics.map_fair_metric_to_group.get(self.fair_metric_name)[1] != "regression":
-            fairness_init["fair_priority"] = self.fair_priority
-            fairness_init["fair_concern"] = self.fair_concern
-            fairness_init["fair_impact"] = self.fair_impact
-        if self.model_params[0].model_type == "uplift" or self.model_params[0].model_type == "credit": 
-            fairness_init["special_params"] = self.spl_params  #num_applicants and base_default_rate for creditscoring, treatment_cost, revenue and selection_threshold for customermarketing
-        fairness_init["fair_threshold_input"] = self.fair_threshold_input
-        fairness_init["fair_neutral_tolerance"] = self.fair_neutral_tolerance  
-        mlflow.log_params(fairness_init)
-
-
-        if to_track == 'evaluate':
-            # log performance
-            perf_value_tracked = "{:.{decimal_pts}f}".format(self.perf_metric_obj.result.get('perf_metric_values').get(self.perf_metric_name)[0], decimal_pts=self.decimals)
-            mlflow.log_metric(f'.SELECTED/{self.perf_metric_name}', perf_value_tracked)
-            
-
-            for p_var in self.fair_metric_obj.p_var[0]:
-                # log fairness conclusions
-                f_conclusion = self.fair_conclusion.get(p_var)
-
-                # since mlflow can only show numbers in metrics, convert fairness conclusions to binary
-                param_to_metric_map = {"unfair": 1, "fair": 0}
-                mlflow.log_params({"fairness_conclusion_legend": param_to_metric_map})
-                if f_conclusion.get("fairness_conclusion") == "unfair":
-                    mlflow.log_metric(f'.SELECTED/{p_var}/{self.fair_metric_name}_conclusion', param_to_metric_map["unfair"])
-                elif f_conclusion.get("fairness_conclusion") == "fair":
-                    mlflow.log_metric(f'.SELECTED/{p_var}/{self.fair_metric_name}_conclusion', param_to_metric_map["fair"])
-                
-                fairness_metric_threshold = "{:.{decimal_pts}f}".format(f_conclusion.get("threshold"), decimal_pts=self.decimals)
-                mlflow.log_metric(f'.SELECTED/{p_var}/{self.fair_metric_name}_threshold', fairness_metric_threshold)
-
-                f_metrics = self.fair_metric_obj.result.get(p_var).get('fair_metric_values')
-                fairness_metric_value = "{:.{decimal_pts}f}".format(f_metrics.get(self.fair_metric_name)[0], decimal_pts=self.decimals)
-                mlflow.log_metric(f'.SELECTED/{p_var}/{self.fair_metric_name}', fairness_metric_value)
-
- 
-            # Save the expanded performance and fairness dataset to artifacts
-            veritas_performance_results = self.get_perf_metrics_results()
-            p = {}
-            for key, value in veritas_performance_results.items():
-                p[key]={}                
-                p[key]['metric_value'] = value[0]
-                p[key]['confidence_interval'] = value[1]
-                mlflow.log_metric(f'P/{key}', value[0]) #show in mlflow metrics
-            
-            veritas_fairness_results = self.get_fair_metrics_results()
-            f = {}
-            for feature, value in veritas_fairness_results.items():
-                f[feature]={}
-                
-                for key, value in veritas_fairness_results[feature].items():
-                    f[feature][key]={}                
-                    f[feature][key]['metric_value'] = value[0]
-                    f[feature][key]['neutral_value'] = value[1]
-                    f[feature][key]['confidence_interval'] = value[2]
-                    mlflow.log_metric(f'F/{feature}/{key}', value[0]) #show in mlflow metrics
-            
-            mlflow.log_dict(p, "performance.json")
-            mlflow.log_dict(f, "fairness.json")
-
-        elif to_track == 'tradeoff':
-            tradeoff_dict = {}
-            for p_var in self.fair_metric_obj.p_var[0]:
-
-                tradeoff_dict[p_var] = {}
-                t = {}
-                t["Privileged/Unprivileged Threshold"] = self.tradeoff_obj.result[p_var]["max_perf_single_th"][0]
-                t["Best " + self.tradeoff_obj.result[p_var]["perf_metric_name"]] = self.tradeoff_obj.result[p_var]["max_perf_single_th"][2]
-                tradeoff_dict[p_var][self.tradeoff_obj.result[p_var]["fair_metric_name"] + ' (Single Threshold)'] = t.copy()
-
-                t = {}
-                t["Privileged Threshold"] = self.tradeoff_obj.result[p_var]["max_perf_point"][0]
-                t["Unprivileged Threshold"] = self.tradeoff_obj.result[p_var]["max_perf_point"][1]
-                t["Best " + self.tradeoff_obj.result[p_var]["perf_metric_name"]] = self.tradeoff_obj.result[p_var]["max_perf_point"][2]
-                tradeoff_dict[p_var][self.tradeoff_obj.result[p_var]["fair_metric_name"] + ' (Separated Thresholds)'] = t.copy()
-
-                t = {}
-                t["Privileged Threshold"] = self.tradeoff_obj.result[p_var]["max_perf_neutral_fair"][0]
-                t["Unprivileged Threshold"] = self.tradeoff_obj.result[p_var]["max_perf_neutral_fair"][1]
-                t["Best " + self.tradeoff_obj.result[p_var]["perf_metric_name"]] = self.tradeoff_obj.result[p_var]["max_perf_neutral_fair"][2]
-                tradeoff_dict[p_var][self.tradeoff_obj.result[p_var]["fair_metric_name"] + f' (Separated Thresholds, Neutral Fairness ({self.fair_neutral_tolerance}))'] = t.copy()
-
-            mlflow.log_dict(tradeoff_dict, 'tradeoff.json')
-
-        elif to_track == 'feature_imp':
-
-            feature_imp = {}
-            for p_var in self.model_params[0].p_var:
-                feature_imp["Fairness on " + p_var] = {}
-                for j in self.model_params[0].p_var:
-                    col1, col2, col3, col4 = self.feature_imp_values[p_var][j]
-                    feature_imp["Fairness on " + p_var]["Removed " + j] = {self.perf_metric_name: col1,
-                                                                            self.fair_metric_name: col2,
-                                                                            "Fairness Conclusion": col3,
-                                                                            "Suggestion": col4}
-            mlflow.log_dict(feature_imp, 'feature_importance.json')
-
-            plt.rcParams['figure.dpi'] = 150
-            labels = self.correlation_output['feature_names']
-
-            plt.imshow(self.correlation_output['corr_values'],  interpolation='nearest')
-            plt.colorbar()
-            plt.grid(False)
-            tick_marks = [i for i in range(len(labels))]
-            plt.xticks(tick_marks, labels, rotation='vertical')
-            plt.yticks(tick_marks, labels)
-            plt.tight_layout()
-            corr_fig = plt.gcf()
-            mlflow.log_figure(corr_fig, 'feature_corr.png')
-            plt.close()
-
-
-
 
     def tradeoff(self, output=True, n_threads=1, sigma = 0):
         """
@@ -653,10 +499,6 @@ class Fairness:
         #if tradeoff has already ran once, just print result
         if output and self.tradeoff_status == 1:
             self._print_tradeoff()
-            # track tradeoff in mlflow
-            if self.mlflow_uri:
-                self._track('tradeoff')
-
 
     def feature_importance(self, output=True, n_threads=1):
         """
@@ -771,9 +613,6 @@ class Fairness:
         #if feature_importance has already ran once, just print result
         if output == True:
             self._print_feature_importance()
-            #track feature importance in mlflow
-            if self.mlflow_uri:
-                self._track("feature_imp")
 
 
     def _feature_imp_loo(p_variable, use_case_object, fimp_pbar, worker_progress):
@@ -1166,8 +1005,7 @@ class Fairness:
                 title_str+=" "
             line_str = int((72-len(title_str))/2) * "-"
             print(line_str + title_str +line_str)
-
-
+            
             print("Performance versus Fairness Trade-Off")
             #Single Threshold
             print("\t Single Threshold")
@@ -1299,7 +1137,6 @@ class Fairness:
         print('done')
         model_name = (self.model_params[0].model_name +"_").replace(" ","_")
         filename = "model_artifact_" + model_name + datetime.datetime.today().strftime('%Y%m%d_%H%M') + ".json"
-        self.artifact_filename = filename
         self.artifact = artifact
         artifactJson = json.dumps(artifact, cls=NpEncoder)
         jsonFile = open(filename, "w")
@@ -1535,7 +1372,7 @@ class Fairness:
                 tab.set_title(1, 'Fairness Metrics')
                 plot_output = widgets.Output(layout=Layout(display='flex', align_items='stretch', width="66.6666%"))
     
-                def filtering(protected_feature, export=False):
+                def filtering(protected_feature):
                     global chosen_p_v
                     chosen_p_v = protected_feature
                     if self.fair_conclusion.get(chosen_p_v).get("fairness_conclusion") == 'fair':
@@ -1636,19 +1473,8 @@ class Fairness:
                         
                         plt.box(False)
                         plt.tight_layout()
-                        if export:
-                            return fig
-                        else:
-                            plt.show()
-
-                if self.mlflow_uri:
-                    for p_var in option_p_var:
-                        # log figure
-                        export = filtering(p_var, export=True)
-                        mlflow.log_figure(export, f"{p_var}.png")
-                        plt.close()
-
-
+                        plt.show()
+    
                 def dropdown_event_handler(change):
                     new = change.new.split(" (")[0]
                     filtering(new)
